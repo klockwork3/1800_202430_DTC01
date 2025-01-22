@@ -60,6 +60,7 @@ project-name/
 ## Contributors
 Jossie - cst student at bcit, i like marshmallows 
 
+- Hi, name is Steve. I can't wait to get a good mark on this project. 
 ---
 
 ## Acknowledgments
