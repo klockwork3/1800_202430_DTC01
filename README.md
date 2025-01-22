@@ -61,6 +61,7 @@ project-name/
 Roger Vanderheyden - Fun Fact: My elbows and thumbs are extra bendy 
 - **Teammate Name** - BCIT CST Student, Frontend enthusiast with a knack for creative design. Fun fact: Has a collection of over 50 houseplants.
 
+- Hi, name is Steve. I can't wait to get a good mark on this project. 
 ---
 
 ## Acknowledgments
