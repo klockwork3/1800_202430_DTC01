@@ -21,7 +21,25 @@
 
     <!-- Link to styles of your own -->
     <link rel="stylesheet" href="./styles/style.css">
+    <style>
+        /*nav bar styling*/
+        .nav-item {
+            padding: 12px 16px; 
+        }
 
+        .nav-link {
+            font-size: 20px; 
+            padding: 12px 16px; 
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1); 
+            border-radius: 5px;
+        }
+        .offcanvas {
+    margin-bottom: 62px;
+}
+    </style>
 </head>
 
 <body>
@@ -70,46 +88,50 @@
                 aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+                    <!-- Center: Home Button -->
+        <a class="btn btn-outline-light bg-light fs-5 text-black d-flex align-items-center justify-content-center" href="index.html">
+            <img src="./images/home.png" alt="Home" class="px-1" width="28"> Home
+        </a>
             <!--Profile Avatar-->
             <a class="navbar-brand" href="#"> <img style="border-radius: 50%"
                     src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" height="36"
                     alt="Default Avatar" /></a>
             <!--Hamburger Menu-->
-            <div class="offcanvas offcanvas-start text-bg-dark" tabindex="-1" id="offcanvasDarkNavbar"
+            <div class="offcanvas offcanvas-start bg-secondary text-bg-dark pb-2" tabindex="-1" id="offcanvasDarkNavbar"
                 aria-labelledby="offcanvasDarkNavbarLabel">
                 <div class="offcanvas-header">
-                    <h5 class="offcanvas-title" id="offcanvasDarkNavbarLabel">Menu</h5>
-                    <a class="navbar-brand" href="#"> <img style="border-radius: 50%"
+                    <h5 class="offcanvas-title " id="offcanvasDarkNavbarLabel">Menu</h5>
+                    <a class="navbar-brand  d-flex flex-column align-items-center w-100" href="#"> <img style="border-radius: 50%"
                             src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" height="36"
                             alt="Default Avatar" /></a>
 
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
                         aria-label="Close"></button>
                 </div>
-                <div class="offcanvas-body">
+                <div class="offcanvas-body bg-secondary">
                     <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
                         <li class="nav-item">
                             <a class="nav-link active" aria-current="page" href="#"><img style="margin-right: 8px;"
-                                    src="./images/logo.jpg" height="24">Home</a>
+                                    src="./images/home.png" height="32">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#"><img style="margin-right: 8px;" src="./images/logo.jpg"
+                            <a class="nav-link" href="#"><img style="margin-right: 8px;" src="./images/to-do-list.png"
                                     height="24">Task List</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#"><img style="margin-right: 8px;" src="./images/logo.jpg"
+                            <a class="nav-link" href="#"><img style="margin-right: 8px;" src="./images/timer.png"
                                     height="24">Timer</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#"><img style="margin-right: 8px;" src="./images/logo.jpg"
+                            <a class="nav-link" href="#"><img style="margin-right: 8px;" src="./images/bar-chart.png"
                                     height="24">User Stats</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#"><img style="margin-right: 8px;" src="./images/logo.jpg"
+                            <a class="nav-link" href="#"><img style="margin-right: 8px;" src="./images/podium.png"
                                     height="24">Leaderboard</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#"><img style="margin-right: 8px;" src="./images/logo.jpg"
+                            <a class="nav-link" href="#"><img style="margin-right: 8px;" src="./images/settings.png"
                                     height="24">Settings</a>
                         </li>
                         <!-- <li class="nav-item dropdown">
