@@ -59,6 +59,8 @@
     <h1 class="display-5 fw-bold">Login</h1>
     <div class="col-lg-6 mx-auto">
         <p class="lead mb-4">Sign in to start slaying your procrastination.</p>
+        <div id="firebaseui-auth-container"></div>
+        <div id="loader">Loading...</div>
         <!-- Email/Password bars-->
         <div class="form-floating mb-3">
             <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com">
@@ -165,7 +167,9 @@
         </div>
     </nav>
 
+    <script src="./scripts/script.js"></script>
     <script src="./scripts/firebaseAPI_DTC01.js"></script>
+    <script src="./scripts/authentication.js"></script>
 
 </body>
 
