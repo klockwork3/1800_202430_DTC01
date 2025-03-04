@@ -41,19 +41,22 @@
         .offcanvas {
             margin-bottom: 62px;
         }
+
         /*Task List Styling*/
         .task-list {
             display: none;
             position: fixed;
-            bottom: 10%;
-            right: 10%;
+            bottom: 10%;  /*position of task list*/
+            right: 10%;   /*position of task list*/
             width: 300px;
             background-color: #f8f9fa;
             border: 4px solid #ddd;
             border-radius: 20px;
             padding: 20px;
+            padding-bottom: 50px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             z-index: 1000;
+            min-height: 300px;  /*Set the minimum height of list*/
         }
 
         .task-list.active {
@@ -63,13 +66,32 @@
         .task-button {
             margin: 20px;
         }
+
         /* Change checkbox size */
         input[type="checkbox"] {
             transform: scale(1.5);
         }
+
         /* Slightly move label from box*/
         label {
             margin-left: 10px;
+        }
+
+        .task-list-container {
+            position: relative;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .add-task-button {
+            position: absolute;
+            right: 0%;
+            bottom: 0;
+            width: 100%;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -121,15 +143,49 @@
                 aria-label="Close" onclick="toggleTaskList()">
             </button>
         </h4>
-        <input type="checkbox" id="task1" class="my-3">
-        <label for="task1">Task 1</label><br>
+        <!-- Task placeholders -->
+        <div id="tasks">
+            <div class="task-item">
+                <input type="checkbox" id="task1" class="my-3" onclick="removeTask(this)">
+                <label for="task1">Task 1</label>
+            </div>
 
-        <input type="checkbox" id="task2" class="my-3">
-        <label for="task2">Task 2</label><br>
+            <div class="task-item">
+                <input type="checkbox" id="task2" class="my-3" onclick="removeTask(this)">
+                <label for="task2">Task 2</label>
+            </div>
 
-        <input type="checkbox" id="task3" class="my-3">
-        <label for="task3">Task 3</label><br>
-        <div class="d-flex justify-content-center mt-3">
+            <div class="task-item">
+                <input type="checkbox" id="task3" class="my-3" onclick="removeTask(this)">
+                <label for="task3">Task 3</label>
+            </div>
+            <div class="task-item">
+                <input type="checkbox" id="task4" class="my-3" onclick="removeTask(this)">
+                <label for="task4">Task 4</label>
+            </div>
+            <div class="task-item">
+                <input type="checkbox" id="task5" class="my-3" onclick="removeTask(this)">
+                <label for="task5">Task 5</label>
+            </div>
+            <div class="task-item">
+                <input type="checkbox" id="task6" class="my-3" onclick="removeTask(this)">
+                <label for="task6">Task 6</label>
+            </div>
+            <div class="task-item">
+                <input type="checkbox" id="task7" class="my-3" onclick="removeTask(this)">
+                <label for="task7">Task 7</label>
+            </div>
+            <div class="task-item">
+                <input type="checkbox" id="task8" class="my-3" onclick="removeTask(this)">
+                <label for="task8">Task 8</label>
+            </div>
+            <div class="task-item">
+                <input type="checkbox" id="task9" class="my-3" onclick="removeTask(this)">
+                <label for="task9">Task 9</label>
+            </div>
+        </div>
+        <!--Add task button-->
+        <div class="add-task-button d-flex justify-content-center fixed">
             <button class="btn btn-success" onclick="addTask()">+ Add New Task</button>
         </div>
     </div>
@@ -216,6 +272,16 @@
         function toggleTaskList() {
             var taskList = document.getElementById('taskList');
             taskList.classList.toggle('active');
+        }
+    </script>
+    <!-- Script for removing items from task list-->
+    <script>
+        function removeTask(checkbox) {
+            // Get the parent div containing the checkbox and label
+            const taskItem = checkbox.parentElement;
+
+            // Remove the task item from the DOM
+            taskItem.remove();
         }
     </script>
 
