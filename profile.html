@@ -10,8 +10,8 @@
     <div class="container d-flex justify-content-center align-items-center vh-100">
         <div class="card p-4 shadow-lg" style="width: 800px; ">
             <div class="text-center">
-                <img src="images/profilepic.jpg" class="rounded-circle mb-3 img-fluid" style="width: 500px;
-                height: 500px; object-fit: cover;" alt="Profile Picture">
+                <img src="images/profilepic.jpg" class="rounded-circle mb-3 img-fluid" style="width: 400px;
+                height: 400px; object-fit: cover;" alt="Profile Picture">
                 <h4 class="fw-bold">Username</h4>
             </div>
 
@@ -39,5 +39,84 @@
             </div>
         </div>
     </div>
+
+
+ <!--Bottom Nav-->
+    <nav class="navbar navbar-dark bg-dark fixed-bottom">
+        <div class="container-fluid">
+            <!--Hamburger-->
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas"
+                data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+                    <!-- Center: Home Button -->
+        <a class="btn btn-outline-light bg-light fs-5 text-black d-flex align-items-center justify-content-center" href="index.html">
+            <img src="./images/home.png" alt="Home" class="px-1" width="28"> Home
+        </a>
+            <!--Profile Avatar-->
+            <a class="navbar-brand" href="profile.html"> <img style="border-radius: 50%"
+                    src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" height="36"
+                    alt="Default Avatar" /></a>
+            <!--Hamburger Menu-->
+            <div class="offcanvas offcanvas-start bg-secondary text-bg-dark pb-2" tabindex="-1" id="offcanvasDarkNavbar"
+                aria-labelledby="offcanvasDarkNavbarLabel">
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title " id="offcanvasDarkNavbarLabel">Menu</h5>
+                    <a class="navbar-brand  d-flex flex-column align-items-center w-100" href="profile.html"> <img style="border-radius: 50%"
+                            src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" height="36"
+                            alt="Default Avatar" /></a>
+
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
+                        aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body bg-secondary">
+                    <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#"><img style="margin-right: 8px;"
+                                    src="./images/home.png" height="32">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#"><img style="margin-right: 8px;" src="./images/to-do-list.png"
+                                    height="24">Task List</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#"><img style="margin-right: 8px;" src="./images/timer.png"
+                                    height="24">Timer</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#"><img style="margin-right: 8px;" src="./images/bar-chart.png"
+                                    height="24">User Stats</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#"><img style="margin-right: 8px;" src="./images/podium.png"
+                                    height="24">Leaderboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#"><img style="margin-right: 8px;" src="./images/settings.png"
+                                    height="24">Settings</a>
+                        </li>
+
+                        <!-- The following part is useful if we want dropdown options within the menu-->
+
+                        <!-- <li class="nav-item dropdown">
+                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                   Dropdown
+                 </a>
+                 <ul class="dropdown-menu dropdown-menu-dark">
+                   <li><a class="dropdown-item" href="#">Action</a></li>
+                   <li><a class="dropdown-item" href="#">Another action</a></li>
+                   <li>
+                     <hr class="dropdown-divider">
+                   </li>
+                   <li><a class="dropdown-item" href="#">Something else here</a></li> -->
+                    </ul>
+                    </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
 </body>
 </html>
