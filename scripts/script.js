@@ -12,7 +12,6 @@ if (newSessionButton) { // check to see if button exists in that page
       });
 }
 
-
 // settingsButton profile.html
 function goSettings() {
       console.log('You went to the settings!'); // in future sprints, these will do something

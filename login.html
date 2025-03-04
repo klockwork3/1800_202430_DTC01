@@ -20,13 +20,13 @@
     <!-------------------------------------------------------->
     <!-- Firebase 8 Library related CSS, JS, JQuery go here -->
     <!-------------------------------------------------------->
-     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-     <script src="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.js"></script>
-     <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.css" />
-     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.css" />
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
 
 
     <!-- Other libraries go here -->
@@ -36,48 +36,49 @@
     <style>
         /*nav bar styling*/
         .nav-item {
-            padding: 12px 16px; 
+            padding: 12px 16px;
         }
 
         .nav-link {
-            font-size: 20px; 
-            padding: 12px 16px; 
+            font-size: 20px;
+            padding: 12px 16px;
         }
 
         .nav-item:hover {
-            background-color: rgba(255, 255, 255, 0.1); 
+            background-color: rgba(255, 255, 255, 0.1);
             border-radius: 5px;
         }
+
         .offcanvas {
-    margin-bottom: 62px;
-}
+            margin-bottom: 62px;
+        }
     </style>
 </head>
 
 <body>
-<div class="px-4 py-5 my-5 text-center">
-    <h1 class="display-5 fw-bold">Login</h1>
-    <div class="col-lg-6 mx-auto">
-        <p class="lead mb-4">Sign in to start slaying your procrastination.</p>
-        <div id="firebaseui-auth-container"></div>
-        <div id="loader">Loading...</div>
-        <!-- Email/Password bars-->
-<!--        <div class="form-floating mb-3">-->
-<!--            <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com">-->
-<!--            <label for="floatingInput">Email address</label>-->
-<!--        </div>-->
-<!--        <div class="form-floating">-->
-<!--            <input type="password" class="form-control mb-3" id="floatingPassword" placeholder="Password">-->
-<!--            <label for="floatingPassword">Password</label>-->
-<!--        </div>-->
-        <!--Buttons-->
-<!--        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">-->
-<!--            <button type="button" class="btn btn-primary btn-lg px-4 gap-3 bg-success"-->
-<!--                onclick="window.location.href='main.html';">Login</button>-->
-<!--&lt;!&ndash;            <button type="button" class="btn btn-primary btn-lg px-4 gap-3 bg-success">Sign Up</button>&ndash;&gt;-->
-<!--        </div>-->
+    <div class="px-4 py-5 my-5 text-center">
+        <h1 class="display-5 fw-bold">Login</h1>
+        <div class="col-lg-6 mx-auto">
+            <p class="lead mb-4">Sign in to start slaying your procrastination.</p>
+            <div id="firebaseui-auth-container"></div>
+            <div id="loader">Loading...</div>
+            <!-- Email/Password bars-->
+            <!--        <div class="form-floating mb-3">-->
+            <!--            <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com">-->
+            <!--            <label for="floatingInput">Email address</label>-->
+            <!--        </div>-->
+            <!--        <div class="form-floating">-->
+            <!--            <input type="password" class="form-control mb-3" id="floatingPassword" placeholder="Password">-->
+            <!--            <label for="floatingPassword">Password</label>-->
+            <!--        </div>-->
+            <!--Buttons-->
+            <!--        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">-->
+            <!--            <button type="button" class="btn btn-primary btn-lg px-4 gap-3 bg-success"-->
+            <!--                onclick="window.location.href='main.html';">Login</button>-->
+            <!--&lt;!&ndash;            <button type="button" class="btn btn-primary btn-lg px-4 gap-3 bg-success">Sign Up</button>&ndash;&gt;-->
+            <!--        </div>-->
+        </div>
     </div>
-</div>
 
 
 
@@ -102,10 +103,11 @@
                 aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-                    <!-- Center: Home Button -->
-        <a class="btn btn-outline-light bg-light fs-5 text-black d-flex align-items-center justify-content-center" href="index.html">
-            <img src="./images/home.png" alt="Home" class="px-1" width="28"> Home
-        </a>
+            <!-- Center: Home Button -->
+            <a class="btn btn-outline-light bg-light fs-5 text-black d-flex align-items-center justify-content-center"
+                href="index.html">
+                <img src="./images/home.png" alt="Home" class="px-1" width="28"> Home
+            </a>
             <!--Profile Avatar-->
             <a class="navbar-brand" href="profile.html"> <img style="border-radius: 50%"
                     src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" height="36"
@@ -115,7 +117,8 @@
                 aria-labelledby="offcanvasDarkNavbarLabel">
                 <div class="offcanvas-header">
                     <h5 class="offcanvas-title " id="offcanvasDarkNavbarLabel">Menu</h5>
-                    <a class="navbar-brand  d-flex flex-column align-items-center w-100" href="profile.html"> <img style="border-radius: 50%"
+                    <a class="navbar-brand  d-flex flex-column align-items-center w-100" href="profile.html"> <img
+                            style="border-radius: 50%"
                             src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" height="36"
                             alt="Default Avatar" /></a>
 
@@ -125,8 +128,8 @@
                 <div class="offcanvas-body bg-secondary">
                     <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
                         <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="#"><img style="margin-right: 8px;"
-                                    src="./images/home.png" height="32">Home</a>
+                            <a class="nav-link active" aria-current="page" href="index.html"><img
+                                    style="margin-right: 8px;" src="./images/home.png" height="32">Home</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="#"><img style="margin-right: 8px;" src="./images/to-do-list.png"
