@@ -24,48 +24,49 @@
     <style>
         /*nav bar styling*/
         .nav-item {
-            padding: 12px 16px; 
+            padding: 12px 16px;
         }
 
         .nav-link {
-            font-size: 20px; 
-            padding: 12px 16px; 
+            font-size: 20px;
+            padding: 12px 16px;
         }
 
         .nav-item:hover {
-            background-color: rgba(255, 255, 255, 0.1); 
+            background-color: rgba(255, 255, 255, 0.1);
             border-radius: 5px;
         }
+
         .offcanvas {
-    margin-bottom: 62px;
-}
+            margin-bottom: 62px;
+        }
     </style>
 </head>
 
 <body>
     <div class="my-5 py-5">
-    <div class="jumbotron text-center">
-        <h1 class="display-4">Welcome to CheckMate</h1>
-        <p class="lead">Log into Checkmate</p>
-    </div>
-    
-    <div class="d-flex align-items-center justify-content-center">
-        <p class="lead">
-            <a class="btn btn-primary btn-lg" href="login.html" role="button">Log In / Sign Up</a>
-        </p>
-    </div>
+        <div class="jumbotron text-center">
+            <h1 class="display-4">Welcome to CheckMate</h1>
+            <p class="lead">Log into Checkmate</p>
+        </div>
+
+        <div class="d-flex align-items-center justify-content-center">
+            <p class="lead">
+                <a class="btn btn-primary btn-lg" href="login.html" role="button">Log In / Sign Up</a>
+            </p>
+        </div>
     </div>
 
     <div class="d-flex justify-content-center">
         <h3>How to use CheckMate:</h3>
     </div>
     <div class="d-flex justify-content-center py-3">
-            <ol class="d-flex flex-column gap-3">
-                <li>Create new study session with your friend or a random user</li>
-                <li>Add new tasks</li>
-                <li>Add due dates to your tasks</li>
-                <li>Receive points when you mark tasks as complete</li>
-            </ol>
+        <ol class="d-flex flex-column gap-3">
+            <li>Create new study session with your friend or a random user</li>
+            <li>Add new tasks</li>
+            <li>Add due dates to your tasks</li>
+            <li>Receive points when you mark tasks as complete</li>
+        </ol>
 
     </div>
 
@@ -91,10 +92,11 @@
                 aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-                    <!-- Center: Home Button -->
-        <a class="btn btn-outline-light bg-light fs-5 text-black d-flex align-items-center justify-content-center" href="index.html">
-            <img src="./images/home.png" alt="Home" class="px-1" width="28"> Home
-        </a>
+            <!-- Center: Home Button -->
+            <a class="btn btn-outline-light bg-light fs-5 text-black d-flex align-items-center justify-content-center"
+                href="index.html">
+                <img src="./images/home.png" alt="Home" class="px-1" width="28"> Home
+            </a>
             <!--Profile Avatar-->
             <a class="navbar-brand" href="profile.html"> <img style="border-radius: 50%"
                     src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" height="36"
@@ -104,7 +106,8 @@
                 aria-labelledby="offcanvasDarkNavbarLabel">
                 <div class="offcanvas-header">
                     <h5 class="offcanvas-title " id="offcanvasDarkNavbarLabel">Menu</h5>
-                    <a class="navbar-brand  d-flex flex-column align-items-center w-100" href="profile.html"> <img style="border-radius: 50%"
+                    <a class="navbar-brand  d-flex flex-column align-items-center w-100" href="profile.html"> <img
+                            style="border-radius: 50%"
                             src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" height="36"
                             alt="Default Avatar" /></a>
 
@@ -114,28 +117,28 @@
                 <div class="offcanvas-body bg-secondary">
                     <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
                         <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="#"><img style="margin-right: 8px;"
-                                    src="./images/home.png" height="32">Home</a>
+                            <a class="nav-link active" aria-current="page" href="index.html"><img
+                                    style="margin-right: 8px;" src="./images/home.png" height="32">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#"><img style="margin-right: 8px;" src="./images/to-do-list.png"
-                                    height="24">Task List</a>
+                            <a id="taskListNav" class="nav-link" href="#"><img style="margin-right: 8px;"
+                                    src="./images/to-do-list.png" height="24">Task List</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#"><img style="margin-right: 8px;" src="./images/timer.png"
-                                    height="24">Timer</a>
+                            <a id="timerNav" class="nav-link" href="#"><img style="margin-right: 8px;"
+                                    src="./images/timer.png" height="24">Timer</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#"><img style="margin-right: 8px;" src="./images/bar-chart.png"
-                                    height="24">User Stats</a>
+                            <a id="userStatsNav" class="nav-link" href="#"><img style="margin-right: 8px;"
+                                    src="./images/bar-chart.png" height="24">User Stats</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#"><img style="margin-right: 8px;" src="./images/podium.png"
-                                    height="24">Leaderboard</a>
+                            <a id="leaderboardNav" class="nav-link" href="#"><img style="margin-right: 8px;"
+                                    src="./images/podium.png" height="24">Leaderboard</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#"><img style="margin-right: 8px;" src="./images/settings.png"
-                                    height="24">Settings</a>
+                            <a id="settingsButton" class="nav-link" href="#"><img style="margin-right: 8px;"
+                                    src="./images/settings.png" height="24">Settings</a>
                         </li>
 
                         <!-- The following part is useful if we want dropdown options within the menu-->
