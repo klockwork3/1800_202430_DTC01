@@ -15,6 +15,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
         crossorigin="anonymous"></script>
+
     <!-- Boostrap Library JS CDN  go here -->
 
     <!-- Other libraries go here -->
@@ -46,8 +47,10 @@
         .task-list {
             display: none;
             position: fixed;
-            bottom: 10%;  /*position of task list*/
-            right: 10%;   /*position of task list*/
+            bottom: 10%;
+            /*position of task list*/
+            right: 10%;
+            /*position of task list*/
             width: 300px;
             background-color: #f8f9fa;
             border: 4px solid #ddd;
@@ -56,7 +59,8 @@
             padding-bottom: 50px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             z-index: 1000;
-            min-height: 300px;  /*Set the minimum height of list*/
+            min-height: 300px;
+            /*Set the minimum height of list*/
         }
 
         .task-list.active {
@@ -112,7 +116,7 @@
     </div>
     <div class="d-flex align-items-center justify-content-center">
         <p class="lead">
-            <a class="btn btn-primary btn-lg" href="#" role="button">Create New Study Session</a>
+            <a id="clickMeButton" class="btn btn-primary btn-lg" href="#">Create New Study Session</a>
         </p>
     </div>
 
@@ -286,6 +290,8 @@
     </script>
 
     <script src="./scripts/firebaseAPI_DTC01.js"></script>
+    <!-- our own js scripts, currently: place holders -->
+    <script src="/scripts/script.js"></script>
 
 </body>
 
