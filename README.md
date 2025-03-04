@@ -6,18 +6,19 @@ Summarize your project's purpose, problem solved, key features, user benefits, d
 
 Example:
 
-This client-side JavaScript web application provides real-time weather updates for cities worldwide. It simplifies accessing weather information through an intuitive mobile-first interface, allowing users to input a city name and receive data on temperature, humidity, and conditions.
+Checkmate is a Javascript web application that connects users to other users to enage in study sessions. It reduces procrastination, by allowing students in study sessions to see eachother's general tasks, providing a competitive environment.
 
-Developed for the [Course Name] course, applying User-Centred Design practices, agile project management processes, integrating a weather API, and Firebase backend services.
+Developed for the [COMP1800] course, applying User-Centred Design practices, agile project management processes, and Firebase backend services.
 
 ---
 
 ## Features
 
 Example:
-- Real-time weather updates for any city.
-- Responsive design for desktop and mobile.
-- Displays temperature, humidity, and weather conditions.
+- Connect to other users
+- Save tasks on task lists
+- Check leaderboards
+- Chat with other users (...)
 
 ---
 
@@ -27,7 +28,7 @@ Example:
 - **Frontend**: HTML, CSS, JavaScript
 - **Backend**: Firebase for hosting
 - **Database**: Firestore
-- **API**: OpenWeatherMap API
+- **API**: PLACEHOLDER
 
 ---
 
@@ -35,8 +36,8 @@ Example:
 
 Example:
 1. Open your browser and visit `http://localhost:3000`.
-2. Enter the name of the city in the search bar and press enter.
-3. View the weather information displayed on the screen.
+2. Start a study session.
+3. Complete Tasks
 
 ---
 
@@ -58,7 +59,7 @@ project-name/
 ---
 
 ## Contributors
-- Jossie - cst student at bcit, i like marshmallows 
+- Jossie - CST student at BCIT, I like marshmallows 
 - Roger Vanderheyden - Fun Fact: My elbows and thumbs are extra bendy 
 - Hi, name is Steve. I can't wait to get a good mark on this project. 
 ---
