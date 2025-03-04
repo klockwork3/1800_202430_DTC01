@@ -1,5 +1,18 @@
 
 // newSessionButton main.html
+function displayLeaderboardTable() {
+      console.log("Here is the leaderboard table, what's your rank"); // in future sprints, these will do something
+}
+
+
+const displayLeaderboard = document.getElementById('displayLeaderboard');
+if (displayLeaderboard) { // check to see if button exists in that page
+      displayLeaderboard.addEventListener('click', function () {
+            displayLeaderboardTable()
+      });
+}
+
+// newSessionButton main.html
 function newSession() {
       console.log('Hello! A new session was made!'); // in future sprints, these will do something
 }
@@ -89,6 +102,10 @@ if (leaderboardNav) {
             showLeaderBoard();
       });
 }
+
+
+
+
 
 
 
