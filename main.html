@@ -97,6 +97,30 @@
             padding: 10px;
             cursor: pointer;
         }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 20px;
+            width: 50%;
+        }
+
+        .close {
+            float: right;
+            font-size: 24px;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -195,6 +219,34 @@
     </div>
     </div>
 
+    <!-- Add Task Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Add New Task</h2>
+            <form id="taskForm">
+                <label for="taskName">Task Name:</label>
+                <input type="text" id="taskName" required>
+
+                <label for="taskDescription">Description:</label>
+                <textarea id="taskDescription"></textarea>
+
+                <label for="taskDeadline">Deadline:</label>
+                <input type="datetime-local" id="taskDeadline">
+
+                <label for="taskReminder">Set Reminder?</label>
+                <select id="taskReminder">
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+
+                <label for="reminderTime" id="reminderTimeLabel" style="display: none;">Reminder Time:</label>
+                <input type="datetime-local" id="reminderTime" style="display: none;">
+
+                <button type="submit">Add Task</button>
+            </form>
+        </div>
+    </div>
 
     <!--Bottom Nav-->
     <nav class="navbar navbar-dark bg-dark fixed-bottom">
