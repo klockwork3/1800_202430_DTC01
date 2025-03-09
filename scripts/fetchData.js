@@ -5,8 +5,10 @@ window.onload = function () {
             return;
       }
 
+      var your_collection_name = "users"
+
       function fetchDataRealTime() {
-            db.collection("your_collection_name").onSnapshot((querySnapshot) => {
+            db.collection(your_collection_name).onSnapshot((querySnapshot) => {
                   const dataContainer = document.getElementById("data-container");
                   dataContainer.innerHTML = ""; // Clear previous content
 
