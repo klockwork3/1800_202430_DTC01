@@ -103,9 +103,3 @@ if (leaderboardNav) {
       });
 }
 
-
-
-
-
-
-
