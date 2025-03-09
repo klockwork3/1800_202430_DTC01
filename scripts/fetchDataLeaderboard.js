@@ -2,7 +2,7 @@ var your_collection_name = "users"
 
 function fetchDataRealTime() {
       db.collection(your_collection_name).onSnapshot((querySnapshot) => {
-            const dataContainer = document.getElementById("data-container");
+            const dataContainer = document.getElementById("leaderboard-placeholder");
             dataContainer.innerHTML = ""; // Clear previous content
 
             querySnapshot.forEach((doc) => {
