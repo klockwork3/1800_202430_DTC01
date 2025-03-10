@@ -307,3 +307,17 @@ function toggleTaskList() {
       });
   }
   }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    // Toggle task completion (strikethrough & gray-out)
+    document.getElementById("tasks").addEventListener("change", function (event) {
+        if (event.target.type === "checkbox") {
+            let taskLabel = event.target.nextElementSibling;
+            if (event.target.checked) {
+                taskLabel.classList.add("completed-task");
+            } else {
+                taskLabel.classList.remove("completed-task");
+            }
+        }
+    });
+});
