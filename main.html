@@ -19,16 +19,6 @@
     <!-- Boostrap Library JS CDN  go here -->
 
     <!-- Other libraries go here -->
-    <!-------------------------------------------------------->
-    <!-- Firebase 8 Library related CSS, JS, JQuery go here -->
-    <!-------------------------------------------------------->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.js"></script>
-    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.css" />
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
 
     <!-- Link to styles of your own -->
     <link rel="stylesheet" href="./styles/style.css">
@@ -114,9 +104,9 @@
     <!-------------------------------------------------------->
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <!-- <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script> -->
     <script src="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.js"></script>
     <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.css" />
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
@@ -128,7 +118,7 @@
 <body class="my-5 py-5">
     <div class=" jumbotron text-center">
         <h1 class="my-5">Welcome back,
-            <span id="Displayname"></span>
+            <h5 id="welcomeName" class="fw-bold"></h5>
             <!-- link to fetch data profile anmd get it to work -->
         </h1>
 
@@ -146,26 +136,11 @@
     </div>
 
 
-
-
-
     <div class="d-flex align-items-center justify-content-center">
         <p class="lead">
             <a id="newSessionButton" class="btn btn-primary btn-lg" href="new_session.html">Create New Study Session</a>
         </p>
     </div>
-
-
-
-    <!------------------------------>
-    <!-- Your HTML Layout go here -->
-    <!------------------------------>
-    <!-- Stuff for body goes here -->
-
-
-    <!---------------------------------------------->
-    <!-- Your own JavaScript functions go here    -->
-    <!---------------------------------------------->
 
 
     <!--Open Task List button-->
@@ -236,14 +211,22 @@
 
 
 
+
     <div id="nav-placeholder"></div>
 
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
 
-    <script src="./scripts/firebaseAPI_DTC01.js"></script>
     <!-- our own js scripts, currently: place holders -->
+    <script src="./scripts/firebaseAPI_DTC01.js"></script>
+    <script src="./scripts/authentication.js"></script>
     <script src="./scripts/script.js"></script>
     <script src="./scripts/nav.js"></script>
+    <script src="./scripts/fetchName.js"></script>
+
+
 
 </body>
 
