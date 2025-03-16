@@ -28,10 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
             email: user.email,                         //with authenticated user's ID (user.uid)
             StatPoints: 0,  // Default points for progression/rewards
             Level: 1,       // A leveling system for motivation
-            TaskList: [],   // Empty array to hold tasks
             Achievements: [], // Array to store milestone badges
             TasksCompleted: 0,  //Stores number of completed tasks
-            TaskHistory: [], // Stores completed tasks
           }).then(function () {
             console.log("New user added to firestore");
             window.location.assign("main.html");       //re-direct to main.html after signup
