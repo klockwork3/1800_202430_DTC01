@@ -244,6 +244,10 @@ document.addEventListener("DOMContentLoaded", function () {
                         // Append the new task HTML to the task list
                         document.getElementById('tasks').insertAdjacentHTML('beforeend', taskHTML);
                         document.getElementById('taskForm').reset();
+                        document.getElementById('taskDeadlineInput').value = ''; 
+                        document.getElementById('taskDeadlineInput').style.display = 'none';
+                        document.getElementById('taskReminderInput').value = '';
+                        document.getElementById('taskReminderInput').style.display = 'none';
 
                         // Close the modal
                         var modal = new bootstrap.Modal(document.getElementById('exampleModal'));
@@ -262,7 +266,9 @@ document.addEventListener("DOMContentLoaded", function () {
     var exampleModalEl = document.getElementById('exampleModal');
     exampleModalEl.addEventListener('hidden.bs.modal', function () {
         document.getElementById('taskForm').reset();
+        document.getElementById('taskDeadlineInput').value = ''; 
         document.getElementById('taskDeadlineInput').style.display = 'none';
+        document.getElementById('taskReminderInput').value = '';
         document.getElementById('taskReminderInput').style.display = 'none';
         document.getElementById('taskDeadlineCheckbox').checked = false;
         document.getElementById('taskReminderCheckbox').checked = false;
@@ -311,6 +317,7 @@ function loadTasks() {
             });
     }
 }
+
 
 document.addEventListener("DOMContentLoaded", function () {
     // Toggle task completion (strikethrough & gray-out)
