@@ -196,21 +196,58 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Toggle visibility of the deadline and reminder fields based on checkbox state
-    document.getElementById('taskDeadlineCheckbox').addEventListener('change', function () {
-        document.getElementById('taskDeadlineInput').style.display = this.checked ? 'block' : 'none';
+
+
+// Initialize Flatpickr for date-only pickers
+    const deadlinePicker = flatpickr("#taskDeadlineInput", {
+        enableTime: false,
+        dateFormat: "F j, Y",
+        minDate: "today",
+        defaultDate: null
     });
 
-    document.getElementById('taskReminderCheckbox').addEventListener('change', function () {
-        document.getElementById('taskReminderInput').style.display = this.checked ? 'block' : 'none';
+    const reminderPicker = flatpickr("#taskReminderInput", {
+        enableTime: false,
+        dateFormat: "F j, Y",
+        minDate: "today",
+        defaultDate: null
     });
 
+    // Toggle visibility for deadline date and time inputs
+    const taskDeadlineCheckbox = document.getElementById('taskDeadlineCheckbox');
+    const taskDeadlineInput = document.getElementById('taskDeadlineInput');
+    const taskDeadlineTimeInput = document.getElementById('taskDeadlineTimeInput');
+    taskDeadlineCheckbox.addEventListener('change', function () {
+        const displayStyle = this.checked ? 'block' : 'none';
+        taskDeadlineInput.style.display = displayStyle;
+        taskDeadlineTimeInput.style.display = displayStyle;
+        if (!this.checked) {
+            deadlinePicker.clear();
+            taskDeadlineTimeInput.value = ''; // Clear time input
+        }
+    });
+
+    // Toggle visibility for reminder date and time inputs
+    const taskReminderCheckbox = document.getElementById('taskReminderCheckbox');
+    const taskReminderInput = document.getElementById('taskReminderInput');
+    const taskReminderTimeInput = document.getElementById('taskReminderTimeInput');
+    taskReminderCheckbox.addEventListener('change', function () {
+        const displayStyle = this.checked ? 'block' : 'none';
+        taskReminderInput.style.display = displayStyle;
+        taskReminderTimeInput.style.display = displayStyle;
+        if (!this.checked) {
+            reminderPicker.clear();
+            taskReminderTimeInput.value = ''; // Clear time input
+        }
+    });
     // Add task to task list when "add task" button is clicked
     document.getElementById('addTaskButton').addEventListener('click', function () {
         const taskName = document.getElementById('recipient-name').value;
         const taskDescription = document.getElementById('message-text').value;
         const taskDeadline = document.getElementById('taskDeadlineInput').value;
         const taskReminder = document.getElementById('taskReminderInput').value;
+        const taskDeadlineTime = document.getElementById('taskDeadlineTimeInput').value;
+        const taskReminderTime = document.getElementById('taskReminderTimeInput').value;
         const taskValue = getSelectedStarValue();
 
         if (taskName) {
@@ -218,8 +255,10 @@ document.addEventListener("DOMContentLoaded", function () {
             const task = {
                 name: taskName,
                 description: taskDescription,
-                deadline: taskDeadline,
-                reminder: taskReminder,
+                deadline: taskDeadline, 
+                deadlineTime: taskDeadlineTime,
+                reminder: taskReminder, 
+                reminderTime: taskReminderTime,
                 completed: false,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 value: taskValue
@@ -248,6 +287,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         document.getElementById('taskDeadlineInput').style.display = 'none';
                         document.getElementById('taskReminderInput').value = '';
                         document.getElementById('taskReminderInput').style.display = 'none';
+                        
 
                         // Close the modal
                         var modal = new bootstrap.Modal(document.getElementById('exampleModal'));
@@ -268,6 +308,10 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById('taskForm').reset();
         document.getElementById('taskDeadlineInput').value = ''; 
         document.getElementById('taskDeadlineInput').style.display = 'none';
+        document.getElementById('taskDeadlineTimeInput').value = '';
+        document.getElementById('taskReminderTimeInput').value = '';
+        document.getElementById('taskDeadlineTimeInput').style.display = 'none';
+        document.getElementById('taskReminderTimeInput').style.display = 'none';
         document.getElementById('taskReminderInput').value = '';
         document.getElementById('taskReminderInput').style.display = 'none';
         document.getElementById('taskDeadlineCheckbox').checked = false;

@@ -20,7 +20,10 @@
     <!-- Boostrap Library JS CDN  go here -->
 
     <!-- Other libraries go here -->
-
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <!-- Link to styles of your own -->
     <link rel="stylesheet" href="./styles/style.css">
 
@@ -132,8 +135,15 @@ label.star:before {
 content: '\f006';
 font-family: FontAwesome;
 }
+
+#taskDeadlineInput, #taskReminderInput {
+        width: 150px; /* Adjust this value as needed */
+    }
+#taskDeadlineTimeInput, #taskReminderTimeInput {
+    width: 100px; /* Width for the time input, narrower than date */
+}
 .form-check {
-    margin-left: 15px;  /* Adjust the value as needed */
+    margin-left: 15px;  
 }
     </style>
 
@@ -208,57 +218,47 @@ font-family: FontAwesome;
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">New Task</h1>
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Add New Task</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="taskForm">
-                        <div class="mb-3">
+                        <div class="">
                             <label for="recipient-name" class="col-form-label">Task name:</label>
                             <input type="text" class="form-control" id="recipient-name">
                         </div>
 
                         <div class="mb-3">
                             <label for="message-text" class="col-form-label">Description:</label>
-                            <textarea class="form-control" id="message-text"></textarea>
+                            <textarea class="form-control" id="message-text" rows="1"></textarea>
                         </div>
-                        <div class="mb-3">
-                            <label for="task-value" class="col-form-label">Task Value:</label>
-                            <div class="container d-flex justify-content-center ">
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="stars">
-                                            <form action="">
-                                                <input class="star star-5" id="star-5" type="radio" name="star" />
-                                                <label class="star star-5" for="star-5"></label>
-                                                <input class="star star-4" id="star-4" type="radio" name="star" />
-                                                <label class="star star-4" for="star-4"></label>
-                                                <input class="star star-3" id="star-3" type="radio" name="star" />
-                                                <label class="star star-3" for="star-3"></label>
-                                                <input class="star star-2" id="star-2" type="radio" name="star" />
-                                                <label class="star star-2" for="star-2"></label>
-                                                <input class="star star-1" id="star-1" type="radio" name="star" checked />
-                                                <label class="star star-1" for="star-1"></label>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-
+                        <div class="mb-3 d-flex align-items-center">
+                            <label for="task-value" class="col-form-label me-4">Task Value:</label>
+                            <div class="stars">
+                                <input class="star star-5" id="star-5" type="radio" name="star" />
+                                <label class="star star-5" for="star-5"></label>
+                                <input class="star star-4" id="star-4" type="radio" name="star" />
+                                <label class="star star-4" for="star-4"></label>
+                                <input class="star star-3" id="star-3" type="radio" name="star" />
+                                <label class="star star-3" for="star-3"></label>
+                                <input class="star star-2" id="star-2" type="radio" name="star" />
+                                <label class="star star-2" for="star-2"></label>
+                                <input class="star star-1" id="star-1" type="radio" name="star" checked />
+                                <label class="star star-1" for="star-1"></label>
                             </div>
                         </div>
                         <div>
-                            <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="taskDeadlineCheckbox">
-                                <label class="form-check-label" for="taskDeadlineCheckbox">Set Deadline</label>
-                                <label for="taskDeadlineInput"><input type="datetime-local" id="taskDeadlineInput"
-                                        style="display: none;"></label>
-
+                            <div class="mb-3 form-check d-flex align-items-center">
+                                <input type="checkbox" class="form-check-input me-2" id="taskDeadlineCheckbox">
+                                <label class="form-check-label me-2" for="taskDeadlineCheckbox">Set Deadline</label>
+                                <input type="text" class="form-control" id="taskDeadlineInput" style="display: none;" placeholder="Select deadline">
+                                <input type="time" class="form-control" id="taskDeadlineTimeInput" style="display: none;">
                             </div>
-                            <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="taskReminderCheckbox">
-                                <label class="form-check-label" for="taskReminderCheckbox">Set Reminder</label>
-                                <label for="taskReminderInput"><input type="datetime-local" id="taskReminderInput"
-                                        style="display: none;"></label>
+                            <div class="mb-3 form-check d-flex align-items-center">
+                                <input type="checkbox" class="form-check-input me-2" id="taskReminderCheckbox">
+                                <label class="form-check-label me-2" for="taskReminderCheckbox">Set Reminder</label>
+                                <input type="text" class="form-control" id="taskReminderInput" style="display: none;" placeholder="Select reminder">
+                                <input type="time" class="form-control" id="taskReminderTimeInput" style="display: none;">
 
                             </div>
                         </div>
