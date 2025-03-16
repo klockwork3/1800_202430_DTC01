@@ -31,26 +31,26 @@
 
 <body class="bg-light">
 
-      <div class="my-5 py-5">
-            <div class="jumbotron text-center">
-                  <h1 class="display-4">Leaderboard</h1>
-                  <div class="text-center">
-                        <div id="leaderboard-placeholder" style="text-align: left; 
-                        padding-left: 200px; padding-right: 200px;">
-                        </div>
-                  </div>
+      <div class="card">
+            <div class="card-header">
+                  <h2>Leaderboard</h2>
+            </div>
+            <div class="card-body">
+                  <div id="leaderboard-placeholder" class="list-group" style="text-align: left;"></div>
             </div>
       </div>
+
+
 
 
       <div id="nav-placeholder"></div>
 
       <!-- js script -->
-
+      <script src="/scripts/firebaseAPI_DTC01.js"></script>
       <script src="/scripts/script.js"></script>
       <script src="/scripts/nav.js"></script>
       <script src="/scripts/fetchDataLeaderboard.js"></script>
-      <script src="/scripts/firebaseAPI_DTC01.js"></script>
+
 
 
 </body>
