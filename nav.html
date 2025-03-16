@@ -7,11 +7,17 @@
                   aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon"></span>
             </button>
-            <!-- Center: Home Button -->
-            <a class="btn btn-outline-light bg-light fs-5 text-black d-flex align-items-center justify-content-center"
-                  href="index.html">
-                  <img src="./images/home.png" alt="Home" class="px-1" width="28"> Home
+        <!-- Center: Home Button and Task List Icon -->
+        <div class="d-flex align-items-center position-absolute top-50 start-50 translate-middle">
+            <a class="btn btn-outline-light bg-light fs-5 text-black d-flex align-items-center justify-content-center me-3"
+                href="index.html">
+                <img src="./images/home.png" alt="Home" class="px-1" width="28"> Home
             </a>
+        </div>
+        <div class="d-flex align-items-center position-absolute top-50 custom-start translate-middle ">           
+            <a id="taskListNavCenter" onclick="toggleTaskList()" class="btn btn-outline-light bg-light fs-5 text-black d-flex align-items-center justify-content-center">
+            <img src="./images/to-do-list.png" alt="Task List" class="px-1" width="38">
+        </a></div>
             <!--Profile Avatar-->
             <a class="navbar-brand" href="profile.html"> <img style="border-radius: 50%"
                         src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" height="36"
