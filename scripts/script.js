@@ -153,10 +153,7 @@ function removeTask(checkbox) {
                             // Delete from active tasks collection
                             return db.collection("users").doc(user.uid).collection("tasks").doc(taskId).delete();
                         })
-                        .then(() => {
-                            // Remove from UI
-                            taskItem.remove();
-                        });
+
                 } else {
                     console.log("Task document doesn't exist!");
                     taskItem.remove(); // Remove from UI anyway
