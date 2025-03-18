@@ -39,16 +39,21 @@ if (settingsButton) {
 
 
 // logoutButton profile.html
-function logOut() {
-    console.log('You have logged out!'); // in future sprints, these will do something
-}
+document.addEventListener("DOMContentLoaded", function () {
+    const logoutButton = document.getElementById("logoutButton");
 
-const logoutButton = document.getElementById('logoutButton');
-if (logoutButton) {
-    logoutButton.addEventListener('click', function () {
-        logOut();
-    });
-}
+    if (logoutButton) {
+        logoutButton.addEventListener("click", function () {
+            firebase.auth().signOut().then(() => {
+                console.log("User signed out.");
+                window.location.href = "login.html"; // Redirect to login page
+            }).catch((error) => {
+                console.error("Error signing out:", error);
+            });
+        });
+    }
+});
+
 
 
 // task in navbar
