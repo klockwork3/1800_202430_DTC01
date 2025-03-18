@@ -38,14 +38,17 @@
 <!-- Content Starts Here -->
 
 <body class="bg-light">
+    
+
     <div class="container d-flex justify-content-center align-items-center vh-100">
-        <div class="card p-4 shadow-lg" style="width: 800px; ">
+        <div class="card p-3 shadow-lg" style="width: 800px;">
             <div class="text-center">
-                <img src="images/profilepic.jpg" class="rounded-circle mb-3 img-fluid" style="width: 400px;
-                height: 400px; object-fit: cover;" alt="Profile Picture">
-                <h4 class="fw-bold" id="displayName">Username</h4>
+                <img src="images/profilepic.jpg" class="rounded-circle mb-2 img-fluid" 
+                     style="width: 300px; height: 300px; object-fit: cover;" alt="Profile Picture">
+                <h4 class="fw-bold mb-2" id="displayName">Username</h4>
             </div>
-            <div class="mt-3">
+            
+            <div class="mt-2">
                 <div class="d-flex justify-content-between">
                     <div>
                         <h5 id="statPoints" class="fw-bold">12</h5>
@@ -61,20 +64,21 @@
                     </div>
                 </div>
             </div>
-
-            <div class="mt-3 text-center">
+    
+            <div class="mt-2 text-center">
                 <a href="settings.html">
                     <button id="settingsButton" class="btn btn-outline-secondary w-100">Settings</button>
                 </a>
-
-
-
+    
+                <a href="leaderboard.html">
+                    <button id="leaderboardButton" class="btn btn-primary w-100 mt-2">View Leaderboard</button>
+                </a>
+    
                 <button id="logoutButton" class="btn btn-primary w-100 mt-2">Logout</button>
-
-
             </div>
         </div>
     </div>
+    
 
 
     <div id="nav-placeholder"></div>
