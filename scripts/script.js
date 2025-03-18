@@ -369,16 +369,39 @@ function loadTasks() {
     }
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("tasks").addEventListener("click", function (event) {
+        if (event.target.classList.contains("toggle-details")) {
+            let details = event.target.nextElementSibling;
+            if (details.style.display === "none") {
+                details.style.display = "block";
+                event.target.textContent = "Hide Details";
+            } else {
+                details.style.display = "none";
+                event.target.textContent = "Show Details";
+            }
+        }
+    });
+});
+
+
 function addTaskToUI(taskId, taskData, isCompleted) {
     let taskHTML = `
-        <div class="task-item ${isCompleted ? 'completed-task' : ''}" data-task-id="${taskId}">
-            <input type="checkbox" class="my-3" onclick="removeTask(this)" ${isCompleted ? 'checked disabled' : ''}>
-            <label>${taskData.name}</label>
+        <div class="task-item ${isCompleted ? 'completed-task' : ''}" data-task-id="${taskId}" 
+             style="border-bottom: 1px solid #ccc; padding: 8px;">
+            
+            <input type="checkbox" class="my-3" onclick="removeTask(this)" ${isCompleted ? 'checked' : ''}>
+            <label class="fw-bold">${taskData.name}</label>
+            
+            <p class="text-muted mb-1"><strong>Deadline:</strong> ${taskData.deadline || "None"}</p>
+            <p class="text-muted mb-0"><strong>Difficulty:</strong> ${"⭐".repeat(taskData.value || 1)}</p>
         </div>
     `;
 
     document.getElementById('tasks').insertAdjacentHTML('beforeend', taskHTML);
 }
+
+
 
 
 document.addEventListener("DOMContentLoaded", function () {
