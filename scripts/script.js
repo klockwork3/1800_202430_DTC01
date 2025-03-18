@@ -336,32 +336,48 @@ firebase.auth().onAuthStateChanged(function (user) {
 function loadTasks() {
     const user = firebase.auth().currentUser;
     if (user) {
+        const tasksContainer = document.getElementById('tasks');
+        tasksContainer.innerHTML = ''; // Clear task list
+
+        // Fetch active tasks
         db.collection("users").doc(user.uid).collection("tasks")
             .orderBy("createdAt", "desc")
             .get()
             .then((querySnapshot) => {
-                // Clear existing tasks first
-                document.getElementById('tasks').innerHTML = '';
-
                 querySnapshot.forEach((doc) => {
                     const taskData = doc.data();
-
-                    // Create task HTML
-                    let taskHTML = `
-                  <div class="task-item" data-task-id="${doc.id}">
-                      <input type="checkbox" class="my-3" onclick="removeTask(this)">
-                      <label>${taskData.name}</label>
-              `;
-                    taskHTML += `</div>`;
-
-                    // Append the task HTML to the task list
-                    document.getElementById('tasks').insertAdjacentHTML('beforeend', taskHTML);
+                    addTaskToUI(doc.id, taskData, false); // false = not completed
                 });
             })
             .catch((error) => {
-                console.log("Error getting tasks: ", error);
+                console.log("Error getting active tasks: ", error);
+            });
+
+        // Fetch completed tasks from history
+        db.collection("users").doc(user.uid).collection("taskHistory")
+            .orderBy("completedAt", "desc")
+            .get()
+            .then((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    const taskData = doc.data();
+                    addTaskToUI(doc.id, taskData, true); // true = completed
+                });
+            })
+            .catch((error) => {
+                console.log("Error getting completed tasks: ", error);
             });
     }
+}
+
+function addTaskToUI(taskId, taskData, isCompleted) {
+    let taskHTML = `
+        <div class="task-item ${isCompleted ? 'completed-task' : ''}" data-task-id="${taskId}">
+            <input type="checkbox" class="my-3" onclick="removeTask(this)" ${isCompleted ? 'checked disabled' : ''}>
+            <label>${taskData.name}</label>
+        </div>
+    `;
+
+    document.getElementById('tasks').insertAdjacentHTML('beforeend', taskHTML);
 }
 
 
