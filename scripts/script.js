@@ -128,50 +128,65 @@ function getSelectedStarValue() {
 // moving completed tasks to history
 function removeTask(checkbox) {
     const taskItem = checkbox.parentElement;
+    const taskName = taskItem.querySelector(".task-name"); // Select only the name
     const taskId = taskItem.getAttribute('data-task-id');
     const user = firebase.auth().currentUser;
 
     if (user && taskId) {
-        // First, get the task data
-        db.collection("users").doc(user.uid).collection("tasks").doc(taskId).get()
-            .then((doc) => {
-                if (doc.exists) {
-                    const taskData = doc.data();
+        if (checkbox.checked) {
+            // ✅ MARK AS COMPLETE
+            db.collection("users").doc(user.uid).collection("tasks").doc(taskId).get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        const taskData = doc.data();
 
-                    // Add completion timestamp
-                    const completedTask = {
-                        ...taskData,
-                        completedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    };
+                        // Move task to history
+                        const completedTask = {
+                            ...taskData,
+                            completedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
 
-                    // Add to task history
-                    return db.collection("users").doc(user.uid).collection("taskHistory").add(completedTask)
-                        .then(() => {
-                            console.log("Task moved to history!");
+                        return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).set(completedTask);
+                    }
+                })
+                .then(() => {
+                    return db.collection("users").doc(user.uid).collection("tasks").doc(taskId).delete();
+                })
+                .then(() => {
+                    taskName.classList.add("completed-task"); // Apply strikethrough only to name
+                })
+                .catch((error) => {
+                    console.error("Error moving task to history: ", error);
+                });
+        } else {
+            // ✅ MOVE BACK TO ACTIVE TASKS
+            db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        const taskData = doc.data();
 
-                            // Also update the user's TasksCompleted counter
-                            return db.collection("users").doc(user.uid).update({
-                                TasksCompleted: firebase.firestore.FieldValue.increment(1)
-                            });
-                        })
-                        .then(() => {
-                            // Delete from active tasks collection
-                            return db.collection("users").doc(user.uid).collection("tasks").doc(taskId).delete();
-                        })
+                        // Move task back to active
+                        const activeTask = {
+                            ...taskData,
+                            completedAt: null // Reset completed timestamp
+                        };
 
-                } else {
-                    console.log("Task document doesn't exist!");
-                    taskItem.remove(); // Remove from UI anyway
-                }
-            })
-            .catch((error) => {
-                console.error("Error moving task to history: ", error);
-            });
-    } else {
-        // Fallback to just UI removal if no taskId or user
-        taskItem.remove();
+                        return db.collection("users").doc(user.uid).collection("tasks").doc(taskId).set(activeTask);
+                    }
+                })
+                .then(() => {
+                    return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).delete();
+                })
+                .then(() => {
+                    taskName.classList.remove("completed-task"); // Remove strikethrough from name
+                })
+                .catch((error) => {
+                    console.error("Error moving task back to active: ", error);
+                });
+        }
     }
 }
+
 
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -387,11 +402,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function addTaskToUI(taskId, taskData, isCompleted) {
     let taskHTML = `
-        <div class="task-item ${isCompleted ? 'completed-task' : ''}" data-task-id="${taskId}" 
+        <div class="task-item" data-task-id="${taskId}" 
              style="border-bottom: 1px solid #ccc; padding: 8px;">
             
             <input type="checkbox" class="my-3" onclick="removeTask(this)" ${isCompleted ? 'checked' : ''}>
-            <label class="fw-bold">${taskData.name}</label>
+            <label class="fw-bold task-name ${isCompleted ? 'completed-task' : ''}">${taskData.name}</label>
             
             <p class="text-muted mb-1"><strong>Deadline:</strong> ${taskData.deadline || "None"}</p>
             <p class="text-muted mb-0"><strong>Difficulty:</strong> ${"⭐".repeat(taskData.value || 1)}</p>
