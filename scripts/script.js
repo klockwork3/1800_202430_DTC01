@@ -436,32 +436,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function addTaskToUI(taskId, taskData, isCompleted) {
     let taskHTML = `
-    <div class="task-item" data-task-id="${taskId}" 
-         style="border-bottom: 1px solid #ccc; padding: 8px;">
-
-        <div class="d-flex align-items-center gap-2 mb-1">
-            <input type="checkbox" class="form-check-input" onclick="removeTask(this)" ${isCompleted ? 'checked' : ''}>
-            <input 
-                type="text" 
-                class="form-control form-control-sm task-name-input ${isCompleted ? 'completed-task' : ''}" 
-                value="${taskData.name}" 
-                data-task-id="${taskId}"
-                style="flex: 1;" 
-                ${isCompleted ? "readonly" : ""}
-            />
+        <div class="task-item" data-task-id="${taskId}" style="border-bottom: 1px solid #ccc; padding: 8px;">
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <input type="checkbox" class="form-check-input" onclick="removeTask(this)" ${isCompleted ? 'checked' : ''}>
+                <input 
+                    type="text" 
+                    class="form-control form-control-sm task-name-input ${isCompleted ? 'completed-task' : ''}" 
+                    value="${taskData.name}" 
+                    data-task-id="${taskId}"
+                    style="flex: 1;" 
+                    ${isCompleted ? "readonly" : ""}
+                />
+            </div>
+            <div class="task-details" style="display: none;">
+                <p class="text-muted mb-1"><strong>Deadline:</strong> ${taskData.deadline || "None"}</p>
+                <p class="text-muted mb-0"><strong>Difficulty:</strong> ${"⭐".repeat(taskData.value || 1)}</p>
+            </div>
         </div>
-
-        <div class="d-flex justify-content-between align-items-center small text-muted">
-            <span><i class="far fa-calendar-alt me-1"></i>${taskData.deadline || "No deadline"}</span>
-            <span><i class="fas fa-signal me-1"></i>${"⭐".repeat(taskData.value || 1)}</span>
-        </div>
-
-    </div>
-`;
-
-
+    `;
     document.getElementById('tasks').insertAdjacentHTML('afterbegin', taskHTML);
 }
+
 
 
 
@@ -850,6 +845,34 @@ function getCurrentSessionId() {
 
 // Modify the existing DOMContentLoaded listener
 document.addEventListener('DOMContentLoaded', function() {
+    // Toggle task completion (strikethrough & gray-out)
+    document.getElementById("tasks").addEventListener("change", function (event) {
+        if (event.target.type === "checkbox") {
+            let taskLabel = event.target.nextElementSibling;
+            if (event.target.checked) {
+                taskLabel.classList.add("completed-task");
+            } else {
+                taskLabel.classList.remove("completed-task");
+            }
+        }
+    });
+
+    // Toggle all task details
+    const toggleAllBtn = document.getElementById('toggleAllDetailsButton');
+    let showingAll = false;
+
+    if (toggleAllBtn) {
+        toggleAllBtn.addEventListener('click', function () {
+            const details = document.querySelectorAll('.task-details');
+            showingAll = !showingAll;
+            details.forEach(detail => {
+                detail.style.display = showingAll ? 'block' : 'none';
+            });
+            toggleAllBtn.textContent = showingAll ? 'Hide All Details' : 'Show All Details';
+        });
+    }
+
+    // Chat functionality
     const sendButton = document.getElementById('sendChatButton');
     const chatInput = document.getElementById('chatMessageInput');
 
