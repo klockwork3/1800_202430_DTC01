@@ -432,3 +432,220 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
+
+//************************************************************************************************ */
+//AI Assisted - Chat box functionality .
+
+// Chat system implementation for CheckMate
+// In newSession.html or wherever you create a new session
+function createStudySession() {
+    const user = firebase.auth().currentUser;
+    
+    // Create a new session document
+    const newSessionRef = db.collection("studySessions").doc();
+    
+    const sessionData = {
+        host: user.uid,
+        hostName: user.displayName || 'Anonymous',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        status: 'active',
+        participants: [user.uid]
+    };
+
+    newSessionRef.set(sessionData)
+        .then(() => {
+            // Store the session ID for current user
+            localStorage.setItem('currentSessionId', newSessionRef.id);
+            // Update UI to show session started
+            document.getElementById('session').innerText = 'Active';
+            
+            // Start listening to session changes
+            listenToSessionChanges(newSessionRef.id);
+        });
+}
+
+function joinStudySession(sessionId) {
+    const user = firebase.auth().currentUser;
+    
+    db.collection("studySessions").doc(sessionId).update({
+        participants: firebase.firestore.FieldValue.arrayUnion(user.uid),
+        status: 'active'
+    }).then(() => {
+        localStorage.setItem('currentSessionId', sessionId);
+        // Redirect or update UI
+    });
+}
+function listenToSessionChanges(sessionId) {
+    db.collection("studySessions").doc(sessionId)
+        .onSnapshot((doc) => {
+            const sessionData = doc.data();
+            if (sessionData.status === 'active') {
+                // Start chat, timer, etc.
+                loadChatMessages(sessionId);
+            }
+        });
+}
+
+// Function to toggle chat list (similar to task list toggle)
+function toggleChatList() {
+    var chatList = document.getElementById('chatList');
+    chatList.classList.toggle('active');
+}
+
+// Function to send a message
+function sendMessage() {
+    const messageInput = document.getElementById('chatMessageInput');
+    const message = messageInput.value.trim();
+
+    if (message) {
+        const user = firebase.auth().currentUser;
+        const currentSessionId = getCurrentSessionId();
+
+        if (user && currentSessionId) {
+            const chatMessage = {
+                text: message,
+                sender: user.uid,
+                senderName: user.displayName || 'Anonymous',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                sessionId: currentSessionId
+            };
+
+            db.collection("chatMessages").add(chatMessage)
+                .then(() => {
+                    messageInput.value = ''; // Clear input after sending
+                    // Optional: scroll to bottom of chat
+                    const messagesContainer = document.getElementById('chatMessages');
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                })
+                .catch((error) => {
+                    console.error("Error sending message: ", error);
+                    // Optional: show error to user
+                });
+        } else {
+            // Prompt user to start/join a session
+            alert('Please start or join a study session first.');
+        }
+    }
+}
+
+// Function to load chat messages for a specific session
+function loadChatMessages(sessionId) {
+    const messagesContainer = document.getElementById('chatMessages');
+    
+    // Clear existing messages
+    messagesContainer.innerHTML = ''; 
+
+    // Ensure we have a valid session ID
+    if (!sessionId) {
+        console.warn('No session ID provided');
+        return;
+    }
+
+    // Real-time listener for chat messages
+    db.collection("chatMessages")
+        .where("sessionId", "==", sessionId)
+        .get()  // Use .get() instead of .onSnapshot() if index creation is problematic
+        .then((querySnapshot) => {
+            // Sort messages client-side
+            const messages = querySnapshot.docs
+                .map(doc => ({ id: doc.id, ...doc.data() }))
+                .sort((a, b) => 
+                    (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0)
+                );
+
+            messages.forEach(messageData => {
+                addMessageToUI(messageData);
+            });
+
+            // Scroll to bottom of messages
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        })
+        .catch((error) => {
+            console.error("Error loading chat messages: ", error);
+        });
+
+    // Optional: Set up a real-time listener after initial load
+    db.collection("chatMessages")
+        .where("sessionId", "==", sessionId)
+        .onSnapshot((querySnapshot) => {
+            querySnapshot.docChanges().forEach((change) => {
+                if (change.type === "added") {
+                    const messageData = change.doc.data();
+                    addMessageToUI(messageData);
+                }
+            });
+
+            // Scroll to bottom of messages
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }, (error) => {
+            console.error("Error in chat messages snapshot: ", error);
+        });
+}
+
+// Function to add a message to the UI
+function addMessageToUI(messageData) {
+    const messagesContainer = document.getElementById('chatMessages');
+    const currentUser = firebase.auth().currentUser;
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('chat-message');
+    
+    // Differentiate between sent and received messages
+    if (messageData.sender === currentUser.uid) {
+        messageDiv.classList.add('sent-message');
+    } else {
+        messageDiv.classList.add('received-message');
+    }
+
+    messageDiv.innerHTML = `
+        <strong>${messageData.senderName}</strong>
+        <p>${messageData.text}</p>
+        <small>${formatTimestamp(messageData.timestamp)}</small>
+    `;
+
+    messagesContainer.appendChild(messageDiv);
+    
+    // Auto-scroll to bottom of messages
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Utility function to format timestamp
+function formatTimestamp(timestamp) {
+    if (!timestamp) return '';
+    return new Date(timestamp.seconds * 1000).toLocaleTimeString();
+}
+
+// Placeholder for getting current session ID
+function getCurrentSessionId() {
+    const sessionId = localStorage.getItem('currentSessionId');
+    if (!sessionId) {
+        console.warn('No active session found. Creating a new session...');
+        createStudySession(); // Attempt to create a session if not exists
+        return null;
+    }
+    return sessionId;
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    const sendChatButton = document.getElementById('sendChatButton');
+    const chatMessageInput = document.getElementById('chatMessageInput');
+    const chatListToggle = document.getElementById('chatListNav'); // Assuming you have a nav item to toggle chat
+
+    if (sendChatButton) {
+        sendChatButton.addEventListener('click', sendMessage);
+    }
+
+    // Allow sending message by pressing Enter
+    if (chatMessageInput) {
+        chatMessageInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    }
+
+    // Optional: Toggle chat list
+    if (chatListToggle) {
+        chatListToggle.addEventListener('click', toggleChatList);
+    }
+});
