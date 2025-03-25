@@ -299,13 +299,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     .then((docRef) => {
                         console.log("Task added with ID: ", docRef.id);
 
-                        // Create task HTML structure with the document ID as data attribute
-                        let taskHTML = `
-                  <div class="task-item" data-task-id="${docRef.id}">
-                      <input type="checkbox" class="my-3" onclick="removeTask(this)">
-                      <label>${taskName}</label>
-              `;
-                        taskHTML += `</div>`;
+                        addTaskToUI(docRef.id, task, false);
+
+
 
                         // Append the new task HTML to the task list
                         document.getElementById('tasks').insertAdjacentHTML('beforeend', taskHTML);
