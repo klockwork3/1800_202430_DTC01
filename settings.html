@@ -75,7 +75,7 @@
                         </div>
                         <br>
                         <button type="submit" id="submit" class="btn btn-primary">Submit</button>
-                        <button type="button" class="btn btn-outline-secondary ms-2" onclick="history.back()">Cancel</button>
+                        <button type="button" class="btn btn-outline-secondary ms-2" onclick="confirmCancel()">Cancel</button>
 
                   </form>
             </div>
@@ -99,7 +99,14 @@
       <script src="/scripts/fetchProfile.js"></script>
       <script src="/scripts/updateProfile.js"></script>
 
-
+      <script>
+            function confirmCancel() {
+                if (confirm("Are you sure you want to discard your changes and go back?")) {
+                    history.back();
+                }
+            }
+      </script>
+            
 
 </body>
 
