@@ -1,4 +1,5 @@
-
+let sessionListenerUnsubscribe = null;
+let chatListenerUnsubscribe = null;
 // newSessionButton main.html
 function displayLeaderboardTable() {
     console.log("Here is the leaderboard table, what's your rank"); // in future sprints, these will do something
@@ -528,41 +529,124 @@ function endStudySession() {
     const user = firebase.auth().currentUser;
     const currentSessionId = localStorage.getItem('currentSessionId');
 
-    if (currentSessionId) {
-        db.collection("studySessions").doc(currentSessionId).update({
-            status: 'ended',
-            endedAt: firebase.firestore.FieldValue.serverTimestamp()
+    if (!user || !currentSessionId) {
+        console.error("No user or session ID found");
+        return;
+    }
+
+    db.collection("studySessions").doc(currentSessionId).get()
+        .then((doc) => {
+            if (doc.exists) {
+                const sessionData = doc.data();
+                const participants = sessionData.participants || [];
+                const updatedParticipants = participants.filter(uid => uid !== user.uid);
+
+                const notification = {
+                    type: 'user_left',
+                    message: `${user.displayName || 'Anonymous'} has left the session`,
+                    sessionId: currentSessionId,
+                    timestamp: new Date().toISOString(),
+                    except: user.uid
+                };
+                
+                return db.collection("studySessions").doc(currentSessionId).update({
+                    participants: updatedParticipants,
+                    leftUsers: firebase.firestore.FieldValue.arrayUnion(user.uid)
+                }).then(() => {
+                    notifyParticipants(currentSessionId, notification);
+                    return currentSessionId;
+                });
+            }
+            throw new Error("Session does not exist");
         })
-        .then(() => {
+        .then((sessionId) => {
             return db.collection("users").doc(user.uid).update({
                 activeSessionId: firebase.firestore.FieldValue.delete()
-            });
+            }).then(() => sessionId);
         })
-        .then(() => {
+        .then((sessionId) => {
             localStorage.removeItem('currentSessionId');
-            console.log('Study session ended');
+            console.log('User left the study session');
+
+            // Stop all listeners
+            if (sessionListenerUnsubscribe) {
+                sessionListenerUnsubscribe();
+                sessionListenerUnsubscribe = null;
+            }
+            if (chatListenerUnsubscribe) {
+                chatListenerUnsubscribe();
+                chatListenerUnsubscribe = null;
+            }
+
             document.getElementById("session").innerText = "Not started";
+            const messagesContainer = document.getElementById('chatMessages');
+            if (messagesContainer) {
+                messagesContainer.innerHTML = '';
+            }
+            const chatInput = document.getElementById('chatMessageInput');
+            const sendButton = document.getElementById('sendChatButton');
+            if (chatInput) chatInput.disabled = true;
+            if (sendButton) sendButton.disabled = true;
         })
         .catch((error) => {
             console.error("Error ending study session:", error);
         });
-    }
 }
 
+
 function listenToSessionChanges(sessionId) {
-    db.collection("studySessions").doc(sessionId)
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    // Stop any existing listener
+    if (sessionListenerUnsubscribe) {
+        sessionListenerUnsubscribe();
+        sessionListenerUnsubscribe = null;
+    }
+
+    sessionListenerUnsubscribe = db.collection("studySessions").doc(sessionId)
         .onSnapshot((doc) => {
-            const sessionData = doc.data();
-            
-            if (sessionData) {
-                // Log participants for debugging
-                console.log('Current session participants:', sessionData.participants);
-                
-                // Optional: You can add UI updates here to show participants
-                loadChatMessages(sessionId);
+            if (doc.exists) {
+                const sessionData = doc.data();
+                const participants = sessionData.participants || [];
+                if (participants.includes(user.uid)) {
+                    console.log('Current session participants:', participants);
+                    loadChatMessages(sessionId);
+                } else {
+                    // User is no longer a participant, stop listeners and clear UI
+                    if (sessionListenerUnsubscribe) {
+                        sessionListenerUnsubscribe();
+                        sessionListenerUnsubscribe = null;
+                    }
+                    if (chatListenerUnsubscribe) {
+                        chatListenerUnsubscribe();
+                        chatListenerUnsubscribe = null;
+                    }
+                    const messagesContainer = document.getElementById('chatMessages');
+                    if (messagesContainer) {
+                        messagesContainer.innerHTML = '<p>You are no longer in this session.</p>';
+                    }
+                    localStorage.removeItem('currentSessionId');
+                    console.log(`User ${user.uid} no longer in session ${sessionId}`);
+                }
+            } else {
+                // Session deleted, clean up
+                if (sessionListenerUnsubscribe) {
+                    sessionListenerUnsubscribe();
+                    sessionListenerUnsubscribe = null;
+                }
+                if (chatListenerUnsubscribe) {
+                    chatListenerUnsubscribe();
+                    chatListenerUnsubscribe = null;
+                }
+                localStorage.removeItem('currentSessionId');
+                console.log(`Session ${sessionId} does not exist`);
             }
+        }, (error) => {
+            console.error("Error in session listener:", error);
         });
 }
+
 
 function sendMessage() {
     const messageInput = document.getElementById('chatMessageInput');
@@ -572,58 +656,99 @@ function sendMessage() {
         const user = firebase.auth().currentUser;
         const currentSessionId = localStorage.getItem('currentSessionId');
 
-        if (user && currentSessionId) {
-            const chatMessage = {
-                text: message,
-                sender: user.uid,
-                senderName: user.displayName || 'Anonymous',
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                sessionId: currentSessionId
-            };
+        // Check if user is still in the session
+        db.collection("studySessions").doc(currentSessionId).get()
+            .then((doc) => {
+                if (doc.exists) {
+                    const sessionData = doc.data();
+                    const participants = sessionData.participants || [];
+                    
+                    if (participants.includes(user.uid)) {
+                        // User is still in the session, send message
+                        const chatMessage = {
+                            text: message,
+                            sender: user.uid,
+                            senderName: user.displayName || 'Anonymous',
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                            sessionId: currentSessionId
+                        };
 
-            db.collection("chatMessages").add(chatMessage)
-                .then(() => {
-                    messageInput.value = ''; // Clear input after sending
-                })
-                .catch((error) => {
-                    console.error("Error sending message: ", error);
-                    alert('Failed to send message. Please try again.');
-                });
-        } else {
-            alert('Please start or join a study session first.');
-        }
+                        return db.collection("chatMessages").add(chatMessage);
+                    } else {
+                        throw new Error("Not a participant of this session");
+                    }
+                }
+                throw new Error("Session does not exist");
+            })
+            .then(() => {
+                messageInput.value = ''; // Clear input after sending
+            })
+            .catch((error) => {
+                console.error("Error sending message: ", error);
+                alert('Cannot send message. You may have left the session.');
+                
+                // Disable chat input
+                messageInput.disabled = true;
+                const sendButton = document.getElementById('sendChatButton');
+                if (sendButton) sendButton.disabled = true;
+            });
     }
 }
 
 function loadChatMessages(sessionId) {
+    const user = firebase.auth().currentUser;
     const messagesContainer = document.getElementById('chatMessages');
     
+    if (!messagesContainer || !user) return;
+
     // Clear existing messages
-    if (messagesContainer) {
-        messagesContainer.innerHTML = ''; 
+    messagesContainer.innerHTML = ''; 
+
+    // Stop any existing chat listener
+    if (chatListenerUnsubscribe) {
+        chatListenerUnsubscribe();
+        chatListenerUnsubscribe = null;
     }
 
-    // Real-time listener for chat messages
-    db.collection("chatMessages")
-        .where("sessionId", "==", sessionId)
-        .onSnapshot((querySnapshot) => {
-            // Clear container
-            if (messagesContainer) {
-                messagesContainer.innerHTML = '';
-            }
-            
-            // Sort messages by timestamp
-            const sortedMessages = querySnapshot.docs
-                .map(doc => doc.data())
-                .sort((a, b) => 
-                    (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0)
-                );
+    // Check if user is still a participant
+    db.collection("studySessions").doc(sessionId).get()
+        .then((doc) => {
+            if (doc.exists) {
+                const sessionData = doc.data();
+                const participants = sessionData.participants || [];
+                
+                if (!participants.includes(user.uid)) {
+                    messagesContainer.innerHTML = '<p>You are no longer in this session.</p>';
+                    const chatInput = document.getElementById('chatMessageInput');
+                    const sendButton = document.getElementById('sendChatButton');
+                    if (chatInput) chatInput.disabled = true;
+                    if (sendButton) sendButton.disabled = true;
+                    console.log(`User ${user.uid} not a participant in session ${sessionId}`);
+                    return;
+                }
 
-            sortedMessages.forEach((messageData) => {
-                addMessageToUI(messageData);
-            });
-        }, (error) => {
-            console.error("Error in chat messages snapshot: ", error);
+                // Real-time listener for chat messages
+                chatListenerUnsubscribe = db.collection("chatMessages")
+                    .where("sessionId", "==", sessionId)
+                    .onSnapshot((querySnapshot) => {
+                        messagesContainer.innerHTML = '';
+                        const sortedMessages = querySnapshot.docs
+                            .map(doc => doc.data())
+                            .sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+
+                        sortedMessages.forEach((messageData) => {
+                            addMessageToUI(messageData);
+                        });
+                        console.log(`Chat updated for session ${sessionId}`);
+                    }, (error) => {
+                        console.error("Error in chat messages snapshot: ", error);
+                    });
+            } else {
+                console.log(`Session ${sessionId} does not exist`);
+            }
+        })
+        .catch((error) => {
+            console.error("Error checking session for chat: ", error);
         });
 }
 
@@ -732,6 +857,7 @@ function inviteUserToSession(invitedUserId) {
                     console.log("User is already in the session");
                     return Promise.resolve();
                 }
+                console.log(`Adding user ${invitedUserId} to session ${currentSessionId}`);
                 return db.collection("studySessions").doc(currentSessionId).update({
                     participants: firebase.firestore.FieldValue.arrayUnion(invitedUserId)
                 });
@@ -739,14 +865,41 @@ function inviteUserToSession(invitedUserId) {
             throw new Error("Session does not exist");
         })
         .then(() => {
+            console.log(`Setting activeSessionId for user ${invitedUserId}`);
             return db.collection("users").doc(invitedUserId).set({
                 activeSessionId: currentSessionId
             }, { merge: true });
         })
         .then(() => {
+            return db.collection("users").doc(invitedUserId).get();
+        })
+        .then((userDoc) => {
+            const invitedUserName = userDoc.exists ? userDoc.data().displayName || 'Anonymous' : 'Anonymous';
+            const notification = {
+                type: 'user_joined',
+                message: `${invitedUserName} has joined the session`,
+                sessionId: currentSessionId,
+                timestamp: new Date().toISOString(),
+                except: invitedUserId
+            };
+            console.log(`Sending join notification for ${invitedUserId}: ${notification.message}`);
+            notifyParticipants(currentSessionId, notification);
+
+            // Notify invited user to join the session
+            const joinNotification = {
+                type: 'join_session',
+                message: `You have been invited to a study session!`,
+                sessionId: currentSessionId,
+                timestamp: new Date().toISOString(),
+                except: currentUser.uid
+            };
+            db.collection("users").doc(invitedUserId).update({
+                notifications: firebase.firestore.FieldValue.arrayUnion(joinNotification)
+            });
+
             console.log(`User ${invitedUserId} invited to session ${currentSessionId}`);
             alert(`User invited successfully!`);
-            toggleUserList(); // Close the modal after inviting
+            toggleUserList();
         })
         .catch((error) => {
             console.error("Error inviting user:", error);
@@ -820,15 +973,26 @@ function updateUserStatus(isOnline) {
 
 firebase.auth().onAuthStateChanged((user) => {
     if (user) {
-        updateUserStatus(true); // Set user as online when logged in
+        updateUserStatus(true);
+        listenForNotifications();
         const sessionId = localStorage.getItem('currentSessionId');
         if (sessionId) {
-            joinStudySession(sessionId);
+            db.collection("studySessions").doc(sessionId).get()
+                .then((doc) => {
+                    if (doc.exists && doc.data().participants.includes(user.uid)) {
+                        joinStudySession(sessionId);
+                    } else {
+                        createStudySession();
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error checking session:", error);
+                    createStudySession();
+                });
         } else {
             createStudySession();
         }
     } else {
-        // User logged out, redirect to login
         window.location.href = 'login.html';
     }
 });
@@ -851,3 +1015,112 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+
+function notifyParticipants(sessionId, notification) {
+    db.collection("studySessions").doc(sessionId).get()
+        .then((doc) => {
+            if (doc.exists) {
+                const sessionData = doc.data();
+                const participants = sessionData.participants || [];
+
+                // Send notification to all participants except the one specified in notification.except
+                participants.forEach((participantId) => {
+                    if (participantId !== notification.except) {
+                        db.collection("users").doc(participantId).update({
+                            notifications: firebase.firestore.FieldValue.arrayUnion(notification)
+                        })
+                        .catch((error) => {
+                            console.error("Error sending notification to user:", participantId, error);
+                        });
+                    }
+                });
+            }
+        })
+        .catch((error) => {
+            console.error("Error fetching session for notification:", error);
+        });
+}
+// Listen for notifications
+function listenForNotifications() {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    db.collection("users").doc(user.uid).onSnapshot((doc) => {
+        if (doc.exists) {
+            const userData = doc.data();
+            const notifications = userData.notifications || [];
+
+            notifications.forEach((notification) => {
+                if (!document.querySelector(`.notification[data-timestamp="${notification.timestamp}"]`)) {
+                    showNotification(notification);
+                    if (notification.type === 'join_session') {
+                        // Join the session when notified
+                        joinStudySession(notification.sessionId);
+                    }
+                }
+            });
+        }
+    }, (error) => {
+        console.error("Error listening to notifications:", error);
+    });
+}
+// Function to display notifications
+function showNotification(notification) {
+    const notificationDiv = document.createElement('div');
+    notificationDiv.className = 'notification alert alert-info position-fixed bottom-0 end-0 m-3';
+    notificationDiv.style.zIndex = '1050';
+    notificationDiv.setAttribute('data-timestamp', notification.timestamp || '');
+    notificationDiv.innerHTML = `
+        <p>${notification.message}</p>
+        <button class="btn btn-secondary btn-sm" onclick="dismissNotification(this, '${notification.timestamp}')">Dismiss</button>
+    `;
+    document.body.appendChild(notificationDiv);
+
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        if (notificationDiv.parentNode) {
+            notificationDiv.parentNode.removeChild(notificationDiv);
+        }
+    }, 5000);
+}
+// Function to dismiss notification and remove it from Firestore
+function dismissNotification(button, timestamp) {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    const notificationDiv = button.parentElement;
+    if (notificationDiv.parentNode) {
+        notificationDiv.parentNode.removeChild(notificationDiv);
+    }
+
+    db.collection("users").doc(user.uid).update({
+        notifications: firebase.firestore.FieldValue.arrayRemove(
+            ...getNotification(user.uid, timestamp)
+        )
+    })
+    .catch((error) => {
+        console.error("Error removing notification:", error);
+    });
+}
+
+// Helper function to get specific notification to remove
+function getNotification(userId, timestamp) {
+    return new Promise((resolve) => {
+        db.collection("users").doc(userId).get()
+            .then((doc) => {
+                if (doc.exists) {
+                    const notifications = doc.data().notifications || [];
+                    const notificationToRemove = notifications.filter(
+                        n => n.timestamp === timestamp
+                    );
+                    resolve(notificationToRemove);
+                } else {
+                    resolve([]);
+                }
+            })
+            .catch((error) => {
+                console.error("Error fetching notifications:", error);
+                resolve([]);
+            });
+    });
+}
