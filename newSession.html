@@ -242,6 +242,19 @@
 .chat-list.active {
     display: block;
 }
+.user-item {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+}
+
+.user-item:last-child {
+    border-bottom: none;
+}
+
+.add-user-btn {
+    padding: 4px 8px;
+    font-size: 14px;
+}
     </style>
 
     <!-------------------------------------------------------->
@@ -276,7 +289,7 @@
             <button class="btn btn-danger btn-lg fw-semibold" onclick="resetStopwatch()">Reset</button>
         </div>
         <button class="btn btn-danger btn-lg fw-semibold" onclick="endStudySession(), resetStopwatch()">Stop Session</button>
-        <button class="btn btn-success btn-lg fw-semibold" onclick="inviteUserToSession('userId_of_invited_user')">Invite User</button>
+        <button class="btn btn-success btn-lg fw-semibold" onclick="inviteUserToSession('u0tjzPlmb2UfmT1rQb7FEwZpxrB2')">Invite User</button>
     </div>
 
 
@@ -399,6 +412,18 @@
     </div>
 </div>
 <!-- *************************************************************************************************-->
+<div id="userList" class="chat-list custom-start-chat"> <!-- Using chat-list styling for consistency -->
+    <h4>Online Users
+        <button type="button" class="btn-close btn-close-black float-end" aria-label="Close"
+            onclick="toggleUserList()">
+        </button>
+    </h4>
+    <!-- Users Container -->
+    <div id="onlineUsers" class="task-container" style="max-height: 370px; overflow-y: auto;">
+        <!-- Online users will be added here dynamically -->
+    </div>
+</div>
+<!--***************************************************************************************************-->
     <div id="nav-placeholder"></div>
 
 

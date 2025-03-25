@@ -529,25 +529,22 @@ function endStudySession() {
     const currentSessionId = localStorage.getItem('currentSessionId');
 
     if (currentSessionId) {
-        // Update session status
         db.collection("studySessions").doc(currentSessionId).update({
             status: 'ended',
             endedAt: firebase.firestore.FieldValue.serverTimestamp()
         })
         .then(() => {
-            // Remove active session from user document
             return db.collection("users").doc(user.uid).update({
                 activeSessionId: firebase.firestore.FieldValue.delete()
             });
         })
         .then(() => {
-            // Clear localStorage
             localStorage.removeItem('currentSessionId');
-            
             console.log('Study session ended');
+            document.getElementById("session").innerText = "Not started";
         })
         .catch((error) => {
-            console.error("Error ending study session: ", error);
+            console.error("Error ending study session:", error);
         });
     }
 }
@@ -719,24 +716,138 @@ function toggleChatList() {
 
 // Function to add users to the session
 function inviteUserToSession(invitedUserId) {
-    const currentUser = firebase.auth().currentUser;
     const currentSessionId = localStorage.getItem('currentSessionId');
+    const currentUser = firebase.auth().currentUser;
 
-    if (currentUser && currentSessionId) {
-        db.collection("studySessions").doc(currentSessionId).update({
-            participants: firebase.firestore.FieldValue.arrayUnion(invitedUserId)
+    if (!currentUser || !currentSessionId) {
+        console.error("No active session or user not logged in");
+        return;
+    }
+
+    db.collection("studySessions").doc(currentSessionId).get()
+        .then((doc) => {
+            if (doc.exists) {
+                const participants = doc.data().participants || [];
+                if (participants.includes(invitedUserId)) {
+                    console.log("User is already in the session");
+                    return Promise.resolve();
+                }
+                return db.collection("studySessions").doc(currentSessionId).update({
+                    participants: firebase.firestore.FieldValue.arrayUnion(invitedUserId)
+                });
+            }
+            throw new Error("Session does not exist");
         })
         .then(() => {
-            // Optional: Send a notification to the invited user
             return db.collection("users").doc(invitedUserId).set({
                 activeSessionId: currentSessionId
             }, { merge: true });
         })
         .then(() => {
-            console.log('User invited to session');
+            console.log(`User ${invitedUserId} invited to session ${currentSessionId}`);
+            alert(`User invited successfully!`);
+            toggleUserList(); // Close the modal after inviting
         })
         .catch((error) => {
-            console.error("Error inviting user to session: ", error);
+            console.error("Error inviting user:", error);
+            alert("Failed to invite user. Please try again.");
         });
+}
+
+function toggleUserList() {
+    const userList = document.getElementById('userList');
+    userList.classList.toggle('active');
+    if (userList.classList.contains('active')) {
+        loadOnlineUsers(); // Load users when opening the modal
     }
 }
+// Fetch and display online users
+function loadOnlineUsers() {
+    const onlineUsersContainer = document.getElementById('onlineUsers');
+    if (!onlineUsersContainer) return;
+
+    onlineUsersContainer.innerHTML = '<p>Loading users...</p>'; // Loading indicator
+
+    // Fetch all users and filter for online status
+    db.collection("users").where("isOnline", "==", true).get()
+        .then((querySnapshot) => {
+            onlineUsersContainer.innerHTML = ''; // Clear loading message
+            if (querySnapshot.empty) {
+                onlineUsersContainer.innerHTML = '<p>No users online</p>';
+                return;
+            }
+
+            querySnapshot.forEach((doc) => {
+                const userData = doc.data();
+                const userId = doc.id;
+                const currentUser = firebase.auth().currentUser;
+
+                // Don't show the current user in the list
+                if (userId === currentUser.uid) return;
+
+                const userHTML = `
+                    <div class="user-item d-flex justify-content-between align-items-center mb-2" data-user-id="${userId}">
+                        <span>${userData.displayName || 'Anonymous'}</span>
+                        <button class="btn btn-sm btn-success add-user-btn" onclick="inviteUserToSession('${userId}')">
+                            Add to Session
+                        </button>
+                    </div>
+                `;
+                onlineUsersContainer.insertAdjacentHTML('beforeend', userHTML);
+            });
+        })
+        .catch((error) => {
+            console.error("Error loading online users:", error);
+            onlineUsersContainer.innerHTML = '<p>Error loading users</p>';
+        });
+}
+
+// Update user online status
+function updateUserStatus(isOnline) {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    db.collection("users").doc(user.uid).set({
+        isOnline: isOnline,
+        displayName: user.displayName || 'Anonymous', // Ensure displayName is stored
+        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true })
+    .catch((error) => {
+        console.error("Error updating user status:", error);
+    });
+}
+
+
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        updateUserStatus(true); // Set user as online when logged in
+        const sessionId = localStorage.getItem('currentSessionId');
+        if (sessionId) {
+            joinStudySession(sessionId);
+        } else {
+            createStudySession();
+        }
+    } else {
+        // User logged out, redirect to login
+        window.location.href = 'login.html';
+    }
+});
+
+// Handle logout to set user offline
+document.addEventListener("DOMContentLoaded", function () {
+    const logoutButton = document.getElementById("logoutButton");
+    if (logoutButton) {
+        logoutButton.addEventListener("click", function () {
+            const user = firebase.auth().currentUser;
+            if (user) {
+                updateUserStatus(false); // Set user offline before signing out
+            }
+            firebase.auth().signOut().then(() => {
+                console.log("User signed out.");
+                window.location.href = "login.html";
+            }).catch((error) => {
+                console.error("Error signing out:", error);
+            });
+        });
+    }
+});
