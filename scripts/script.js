@@ -437,69 +437,143 @@ document.addEventListener("DOMContentLoaded", function () {
 //AI Assisted - Chat box functionality .
 
 // Chat system implementation for CheckMate
-// In newSession.html or wherever you create a new session
 function createStudySession() {
     const user = firebase.auth().currentUser;
     
-    // Create a new session document
-    const newSessionRef = db.collection("studySessions").doc();
-    
-    const sessionData = {
-        host: user.uid,
-        hostName: user.displayName || 'Anonymous',
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        status: 'active',
-        participants: [user.uid]
-    };
+    // Check if user already has an active session
+    db.collection("users").doc(user.uid).get()
+        .then((doc) => {
+            if (doc.exists && doc.data().activeSessionId) {
+                // User already has an active session, join that session
+                const existingSessionId = doc.data().activeSessionId;
+                joinStudySession(existingSessionId);
+            } else {
+                // Create a new session
+                const newSessionRef = db.collection("studySessions").doc();
+                
+                const sessionData = {
+                    host: user.uid,
+                    hostName: user.displayName || 'Anonymous',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: 'active',
+                    participants: [user.uid]
+                };
 
-    newSessionRef.set(sessionData)
-        .then(() => {
-            // Store the session ID for current user
-            localStorage.setItem('currentSessionId', newSessionRef.id);
-            // Update UI to show session started
-            document.getElementById('session').innerText = 'Active';
-            
-            // Start listening to session changes
-            listenToSessionChanges(newSessionRef.id);
+                newSessionRef.set(sessionData)
+                    .then(() => {
+                        // Store the session ID for current user in both localStorage and Firestore
+                        localStorage.setItem('currentSessionId', newSessionRef.id);
+                        
+                        // Update user document with active session
+                        return db.collection("users").doc(user.uid).set({
+                            activeSessionId: newSessionRef.id
+                        }, { merge: true });
+                    })
+                    .then(() => {
+                        // Start listening to session changes
+                        listenToSessionChanges(newSessionRef.id);
+                        
+                        console.log('Study session created with ID: ', newSessionRef.id);
+                    })
+                    .catch((error) => {
+                        console.error("Error creating study session: ", error);
+                    });
+            }
+        })
+        .catch((error) => {
+            console.error("Error checking existing session: ", error);
         });
 }
 
 function joinStudySession(sessionId) {
     const user = firebase.auth().currentUser;
     
-    db.collection("studySessions").doc(sessionId).update({
-        participants: firebase.firestore.FieldValue.arrayUnion(user.uid),
-        status: 'active'
-    }).then(() => {
-        localStorage.setItem('currentSessionId', sessionId);
-        // Redirect or update UI
-    });
+    // Retrieve session details first
+    db.collection("studySessions").doc(sessionId).get()
+        .then((doc) => {
+            if (doc.exists) {
+                const sessionData = doc.data();
+                
+                // Check if user is already in the session
+                if (!sessionData.participants.includes(user.uid)) {
+                    // Add user to participants
+                    return db.collection("studySessions").doc(sessionId).update({
+                        participants: firebase.firestore.FieldValue.arrayUnion(user.uid)
+                    });
+                }
+                return Promise.resolve();
+            }
+            throw new Error('Session does not exist');
+        })
+        .then(() => {
+            // Update user's active session
+            return db.collection("users").doc(user.uid).set({
+                activeSessionId: sessionId
+            }, { merge: true });
+        })
+        .then(() => {
+            // Store session ID in localStorage
+            localStorage.setItem('currentSessionId', sessionId);
+            
+            // Start listening to session changes
+            listenToSessionChanges(sessionId);
+            
+            console.log('Joined/Rejoined study session: ', sessionId);
+        })
+        .catch((error) => {
+            console.error("Error joining study session: ", error);
+        });
 }
+function endStudySession() {
+    const user = firebase.auth().currentUser;
+    const currentSessionId = localStorage.getItem('currentSessionId');
+
+    if (currentSessionId) {
+        // Update session status
+        db.collection("studySessions").doc(currentSessionId).update({
+            status: 'ended',
+            endedAt: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then(() => {
+            // Remove active session from user document
+            return db.collection("users").doc(user.uid).update({
+                activeSessionId: firebase.firestore.FieldValue.delete()
+            });
+        })
+        .then(() => {
+            // Clear localStorage
+            localStorage.removeItem('currentSessionId');
+            
+            console.log('Study session ended');
+        })
+        .catch((error) => {
+            console.error("Error ending study session: ", error);
+        });
+    }
+}
+
 function listenToSessionChanges(sessionId) {
     db.collection("studySessions").doc(sessionId)
         .onSnapshot((doc) => {
             const sessionData = doc.data();
-            if (sessionData.status === 'active') {
-                // Start chat, timer, etc.
+            
+            if (sessionData) {
+                // Log participants for debugging
+                console.log('Current session participants:', sessionData.participants);
+                
+                // Optional: You can add UI updates here to show participants
                 loadChatMessages(sessionId);
             }
         });
 }
 
-// Function to toggle chat list (similar to task list toggle)
-function toggleChatList() {
-    var chatList = document.getElementById('chatList');
-    chatList.classList.toggle('active');
-}
-
-// Function to send a message
 function sendMessage() {
     const messageInput = document.getElementById('chatMessageInput');
     const message = messageInput.value.trim();
 
     if (message) {
         const user = firebase.auth().currentUser;
-        const currentSessionId = getCurrentSessionId();
+        const currentSessionId = localStorage.getItem('currentSessionId');
 
         if (user && currentSessionId) {
             const chatMessage = {
@@ -513,80 +587,56 @@ function sendMessage() {
             db.collection("chatMessages").add(chatMessage)
                 .then(() => {
                     messageInput.value = ''; // Clear input after sending
-                    // Optional: scroll to bottom of chat
-                    const messagesContainer = document.getElementById('chatMessages');
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
                 })
                 .catch((error) => {
                     console.error("Error sending message: ", error);
-                    // Optional: show error to user
+                    alert('Failed to send message. Please try again.');
                 });
         } else {
-            // Prompt user to start/join a session
             alert('Please start or join a study session first.');
         }
     }
 }
 
-// Function to load chat messages for a specific session
 function loadChatMessages(sessionId) {
     const messagesContainer = document.getElementById('chatMessages');
     
     // Clear existing messages
-    messagesContainer.innerHTML = ''; 
-
-    // Ensure we have a valid session ID
-    if (!sessionId) {
-        console.warn('No session ID provided');
-        return;
+    if (messagesContainer) {
+        messagesContainer.innerHTML = ''; 
     }
 
     // Real-time listener for chat messages
     db.collection("chatMessages")
         .where("sessionId", "==", sessionId)
-        .get()  // Use .get() instead of .onSnapshot() if index creation is problematic
-        .then((querySnapshot) => {
-            // Sort messages client-side
-            const messages = querySnapshot.docs
-                .map(doc => ({ id: doc.id, ...doc.data() }))
+        .onSnapshot((querySnapshot) => {
+            // Clear container
+            if (messagesContainer) {
+                messagesContainer.innerHTML = '';
+            }
+            
+            // Sort messages by timestamp
+            const sortedMessages = querySnapshot.docs
+                .map(doc => doc.data())
                 .sort((a, b) => 
                     (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0)
                 );
 
-            messages.forEach(messageData => {
+            sortedMessages.forEach((messageData) => {
                 addMessageToUI(messageData);
             });
-
-            // Scroll to bottom of messages
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        })
-        .catch((error) => {
-            console.error("Error loading chat messages: ", error);
-        });
-
-    // Optional: Set up a real-time listener after initial load
-    db.collection("chatMessages")
-        .where("sessionId", "==", sessionId)
-        .onSnapshot((querySnapshot) => {
-            querySnapshot.docChanges().forEach((change) => {
-                if (change.type === "added") {
-                    const messageData = change.doc.data();
-                    addMessageToUI(messageData);
-                }
-            });
-
-            // Scroll to bottom of messages
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }, (error) => {
             console.error("Error in chat messages snapshot: ", error);
         });
 }
 
-// Function to add a message to the UI
+
 function addMessageToUI(messageData) {
     const messagesContainer = document.getElementById('chatMessages');
     const currentUser = firebase.auth().currentUser;
     
+    if (!messagesContainer || !currentUser) return;
+
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('chat-message');
     
@@ -605,17 +655,16 @@ function addMessageToUI(messageData) {
 
     messagesContainer.appendChild(messageDiv);
     
-    // Auto-scroll to bottom of messages
+    // Auto-scroll to bottom
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-// Utility function to format timestamp
 function formatTimestamp(timestamp) {
     if (!timestamp) return '';
     return new Date(timestamp.seconds * 1000).toLocaleTimeString();
 }
 
-// Placeholder for getting current session ID
+// Getting current session ID
 function getCurrentSessionId() {
     const sessionId = localStorage.getItem('currentSessionId');
     if (!sessionId) {
@@ -626,26 +675,68 @@ function getCurrentSessionId() {
     return sessionId;
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-    const sendChatButton = document.getElementById('sendChatButton');
-    const chatMessageInput = document.getElementById('chatMessageInput');
-    const chatListToggle = document.getElementById('chatListNav'); // Assuming you have a nav item to toggle chat
+// Modify the existing DOMContentLoaded listener
+document.addEventListener('DOMContentLoaded', function() {
+    const sendButton = document.getElementById('sendChatButton');
+    const chatInput = document.getElementById('chatMessageInput');
 
-    if (sendChatButton) {
-        sendChatButton.addEventListener('click', sendMessage);
+    if (sendButton) {
+        sendButton.addEventListener('click', sendMessage);
     }
 
-    // Allow sending message by pressing Enter
-    if (chatMessageInput) {
-        chatMessageInput.addEventListener('keypress', function(event) {
+    if (chatInput) {
+        chatInput.addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 sendMessage();
             }
         });
     }
 
-    // Optional: Toggle chat list
-    if (chatListToggle) {
-        chatListToggle.addEventListener('click', toggleChatList);
-    }
+    // Authentication and session management
+    firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+            // Check if there's an existing session
+            const existingSessionId = localStorage.getItem('currentSessionId');
+            
+            if (existingSessionId) {
+                // Load messages for existing session
+                loadChatMessages(existingSessionId);
+            } else {
+                // Create a new session if none exists
+                createStudySession();
+            }
+        } else {
+            // Redirect to login if no user is logged in
+            window.location.href = 'login.html';
+        }
+    });
 });
+// Function to toggle chat list (similar to task list toggle)
+function toggleChatList() {
+    var chatList = document.getElementById('chatList');
+    chatList.classList.toggle('active');
+}
+
+// Function to add users to the session
+function inviteUserToSession(invitedUserId) {
+    const currentUser = firebase.auth().currentUser;
+    const currentSessionId = localStorage.getItem('currentSessionId');
+
+    if (currentUser && currentSessionId) {
+        db.collection("studySessions").doc(currentSessionId).update({
+            participants: firebase.firestore.FieldValue.arrayUnion(invitedUserId)
+        })
+        .then(() => {
+            // Optional: Send a notification to the invited user
+            return db.collection("users").doc(invitedUserId).set({
+                activeSessionId: currentSessionId
+            }, { merge: true });
+        })
+        .then(() => {
+            console.log('User invited to session');
+        })
+        .catch((error) => {
+            console.error("Error inviting user to session: ", error);
+        });
+    }
+}
