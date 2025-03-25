@@ -496,20 +496,44 @@
         window.onload = startStopwatch;
     </script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check if a user is logged in
-            firebase.auth().onAuthStateChanged(function(user) {
-                if (user) {
-                    // Automatically create a study session when the page loads
-                    createStudySession();
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                console.log("User logged in:", user.uid);
+                const existingSessionId = localStorage.getItem('currentSessionId');
+
+                if (existingSessionId) {
+                    // Check if the session is valid and user is a participant
+                    db.collection("studySessions").doc(existingSessionId).get()
+                        .then((doc) => {
+                            if (doc.exists && doc.data().participants.includes(user.uid)) {
+                                console.log("Joining existing session:", existingSessionId);
+                                joinStudySession(existingSessionId); // This calls listenToSessionChanges
+                            } else {
+                                console.log("Invalid session or not a participant. Creating new session.");
+                                localStorage.removeItem('currentSessionId');
+                                createStudySession(); // This also calls listenToSessionChanges
+                            }
+                        })
+                        .catch((error) => {
+                            console.error("Error checking session:", error);
+                            createStudySession(); // Fallback
+                        });
                 } else {
-                    // Redirect to login if no user is logged in
-                    window.location.href = 'login.html';
+                    console.log("No existing session. Creating new session.");
+                    createStudySession();
                 }
-            });
+
+                // Ensure notifications are always listened to
+                listenForNotifications();
+            } else {
+                console.log("No user. Redirecting to login.");
+                window.location.href = 'login.html';
+            }
         });
-    </script>
+    });
+</script>
 </body>
 
 </html>

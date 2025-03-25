@@ -843,7 +843,7 @@ function toggleChatList() {
     var chatList = document.getElementById('chatList');
     chatList.classList.toggle('active');
 }
-let justJoined = false;
+
 // Function to add users to the session
 function inviteUserToSession(invitedUserId) {
     const currentSessionId = localStorage.getItem('currentSessionId');
@@ -981,31 +981,29 @@ function updateUserStatus(isOnline) {
 }
 
 
-document.addEventListener('DOMContentLoaded', function() {
-    firebase.auth().onAuthStateChanged(function(user) {
-        if (user) {
-            listenForNotifications();
-            const sessionId = localStorage.getItem('currentSessionId');
-            if (sessionId) {
-                db.collection("studySessions").doc(sessionId).get()
-                    .then((doc) => {
-                        if (doc.exists && doc.data().participants.includes(user.uid)) {
-                            joinStudySession(sessionId);
-                        } else {
-                            createStudySession();
-                        }
-                    })
-                    .catch((error) => {
-                        console.error("Error checking session:", error);
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        updateUserStatus(true);
+        const sessionId = localStorage.getItem('currentSessionId');
+        if (sessionId) {
+            db.collection("studySessions").doc(sessionId).get()
+                .then((doc) => {
+                    if (doc.exists && doc.data().participants.includes(user.uid)) {
+                        joinStudySession(sessionId);
+                    } else {
                         createStudySession();
-                    });
-            } else {
-                createStudySession();
-            }
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error checking session:", error);
+                    createStudySession();
+                });
         } else {
-            window.location.href = 'login.html';
+            createStudySession();
         }
-    });
+    } else {
+        window.location.href = 'login.html';
+    }
 });
 
 // Handle logout to set user offline
