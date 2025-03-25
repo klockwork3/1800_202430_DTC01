@@ -451,8 +451,11 @@ function addTaskToUI(taskId, taskData, isCompleted) {
             />
         </div>
 
-        <p class="text-muted mb-1"><strong>Deadline:</strong> ${taskData.deadline || "None"}</p>
-        <p class="text-muted mb-0"><strong>Difficulty:</strong> ${"⭐".repeat(taskData.value || 1)}</p>
+        <div class="d-flex justify-content-between align-items-center small text-muted">
+            <span><i class="far fa-calendar-alt me-1"></i>${taskData.deadline || "No deadline"}</span>
+            <span><i class="fas fa-signal me-1"></i>${"⭐".repeat(taskData.value || 1)}</span>
+        </div>
+
     </div>
 `;
 
