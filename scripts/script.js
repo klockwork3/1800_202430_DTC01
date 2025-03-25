@@ -419,7 +419,7 @@ function addTaskToUI(taskId, taskData, isCompleted) {
         </div>
     `;
 
-    document.getElementById('tasks').insertAdjacentHTML('beforeend', taskHTML);
+    document.getElementById('tasks').insertAdjacentHTML('afterbegin', taskHTML);
 }
 
 
