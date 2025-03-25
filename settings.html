@@ -36,30 +36,32 @@
 
 <body class="bg-light">
       <div class="container d-flex justify-content-center align-items-center vh-100">
-            <form id="profileForm">
-                  <div class="mb-3">
-                        <label for="displayNameChange" class="form-label">Display Name</label>
-                        <input class="form-control" id="displayNameChange" aria-describedby="emailHelp">
-                        <div id="displayNameHelp" class="form-text">you can call yourself whatever you want!</div>
-                  </div>
+            <div class="card p-4 shadow-lg" style="width: 100%; max-width: 500px;">
+                  <form id="profileForm">
+                        <div class="mb-3">
+                              <label for="displayNameChange" class="form-label">Display Name</label>
+                              <input class="form-control" id="displayNameChange" aria-describedby="emailHelp">
+                              <div id="displayNameHelp" class="form-text">you can call yourself whatever you want!</div>
+                        </div>
 
-                  <div class="mb-3">
-                        <label for="pronounSelect" class="form-label">Pronouns</label>
-                        <select id="pronounSelect" class="form-select">
-                              <option>she/her/hers</option>
-                              <option>he/him/his</option>
-                              <option>they/them</option>
-                              <option>n/a</option>
-                        </select>
-                  </div>
+                        <div class="mb-3">
+                              <label for="pronounSelect" class="form-label">Pronouns</label>
+                              <select id="pronounSelect" class="form-select">
+                                    <option>she/her/hers</option>
+                                    <option>he/him/his</option>
+                                    <option>they/them</option>
+                                    <option>n/a</option>
+                              </select>
+                        </div>
 
-                  <div class="form-group">
-                        <label for="bioArea">Bio</label>
-                        <textarea class="form-control" id="bioArea" rows="3"></textarea>
-                  </div>
-                  <br>
-                  <button type="submit" id="submit" class="btn btn-primary">Submit</button>
-            </form>
+                        <div class="form-group">
+                              <label for="bioArea">Bio</label>
+                              <textarea class="form-control" id="bioArea" rows="3"></textarea>
+                        </div>
+                        <br>
+                        <button type="submit" id="submit" class="btn btn-primary">Submit</button>
+                  </form>
+            </div>
       </div>
 
 
@@ -79,6 +81,8 @@
       <script src="/scripts/firebaseAPI_DTC01.js"></script>
       <script src="/scripts/fetchProfile.js"></script>
       <script src="/scripts/updateProfile.js"></script>
+
+
 
 </body>
 
