@@ -33,11 +33,17 @@ function updateUserProfile(user) {
             pronouns: pronouns,
             bio: bio
       }, { merge: true })
-            .then(() => {
-
-                  window.location.href = 'profile.html';
-
-            })
+      .then(() => {
+            const alertBox = document.getElementById('updateAlert');
+            if (alertBox) {
+              alertBox.classList.remove('d-none');
+            }
+          
+            setTimeout(() => {
+              window.location.href = 'profile.html';
+            }, 2000);
+          })
+          
             .catch(error => {
                   console.error("Error updating profile: ", error);
                   alert("Error updating profile!");
