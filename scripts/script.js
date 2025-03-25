@@ -113,6 +113,15 @@ if (leaderboardNav) {
 function toggleTaskList() {
     var taskList = document.getElementById('taskList');
     taskList.classList.toggle('active');
+
+     // Close the offcanvas menu if open
+  const offcanvas = document.querySelector('.offcanvas.show');
+  if (offcanvas) {
+    const instance = bootstrap.Offcanvas.getInstance(offcanvas);
+    if (instance) {
+      instance.hide();
+    }
+  }
 }
 
 // Star value checker
