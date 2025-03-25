@@ -534,6 +534,11 @@ function endStudySession() {
         return;
     }
 
+    if (justJoined) {
+        console.log(`User ${user.uid} just joined, skipping endStudySession`);
+        return;
+    }
+
     db.collection("studySessions").doc(currentSessionId).get()
         .then((doc) => {
             if (doc.exists) {
@@ -838,7 +843,7 @@ function toggleChatList() {
     var chatList = document.getElementById('chatList');
     chatList.classList.toggle('active');
 }
-
+let justJoined = false;
 // Function to add users to the session
 function inviteUserToSession(invitedUserId) {
     const currentSessionId = localStorage.getItem('currentSessionId');
@@ -875,28 +880,33 @@ function inviteUserToSession(invitedUserId) {
         })
         .then((userDoc) => {
             const invitedUserName = userDoc.exists ? userDoc.data().displayName || 'Anonymous' : 'Anonymous';
-            const notification = {
+            const timestamp = new Date().toISOString();
+    
+            const joinNotification = {
                 type: 'user_joined',
                 message: `${invitedUserName} has joined the session`,
                 sessionId: currentSessionId,
-                timestamp: new Date().toISOString(),
+                timestamp: timestamp,
                 except: invitedUserId
             };
-            console.log(`Sending join notification for ${invitedUserId}: ${notification.message}`);
-            notifyParticipants(currentSessionId, notification);
-
-            // Notify invited user to join the session
-            const joinNotification = {
+            console.log(`Sending join notification for ${invitedUserId}: ${joinNotification.message}`);
+            notifyParticipants(currentSessionId, joinNotification);
+    
+            const inviteNotification = {
                 type: 'join_session',
                 message: `You have been invited to a study session!`,
                 sessionId: currentSessionId,
-                timestamp: new Date().toISOString(),
+                timestamp: timestamp,
                 except: currentUser.uid
             };
+            console.log(`Sending invite notification to ${invitedUserId}: ${inviteNotification.message}`);
             db.collection("users").doc(invitedUserId).update({
-                notifications: firebase.firestore.FieldValue.arrayUnion(joinNotification)
+                notifications: firebase.firestore.FieldValue.arrayUnion(inviteNotification)
             });
-
+    
+            justJoined = true; // Set flag
+            setTimeout(() => justJoined = false, 2000); // Reset after 2 seconds
+    
             console.log(`User ${invitedUserId} invited to session ${currentSessionId}`);
             alert(`User invited successfully!`);
             toggleUserList();
@@ -905,7 +915,7 @@ function inviteUserToSession(invitedUserId) {
             console.error("Error inviting user:", error);
             alert("Failed to invite user. Please try again.");
         });
-}
+    }
 
 function toggleUserList() {
     const userList = document.getElementById('userList');
@@ -971,30 +981,31 @@ function updateUserStatus(isOnline) {
 }
 
 
-firebase.auth().onAuthStateChanged((user) => {
-    if (user) {
-        updateUserStatus(true);
-        listenForNotifications();
-        const sessionId = localStorage.getItem('currentSessionId');
-        if (sessionId) {
-            db.collection("studySessions").doc(sessionId).get()
-                .then((doc) => {
-                    if (doc.exists && doc.data().participants.includes(user.uid)) {
-                        joinStudySession(sessionId);
-                    } else {
+document.addEventListener('DOMContentLoaded', function() {
+    firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+            listenForNotifications();
+            const sessionId = localStorage.getItem('currentSessionId');
+            if (sessionId) {
+                db.collection("studySessions").doc(sessionId).get()
+                    .then((doc) => {
+                        if (doc.exists && doc.data().participants.includes(user.uid)) {
+                            joinStudySession(sessionId);
+                        } else {
+                            createStudySession();
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error checking session:", error);
                         createStudySession();
-                    }
-                })
-                .catch((error) => {
-                    console.error("Error checking session:", error);
-                    createStudySession();
-                });
+                    });
+            } else {
+                createStudySession();
+            }
         } else {
-            createStudySession();
+            window.location.href = 'login.html';
         }
-    } else {
-        window.location.href = 'login.html';
-    }
+    });
 });
 
 // Handle logout to set user offline
@@ -1043,7 +1054,9 @@ function notifyParticipants(sessionId, notification) {
 // Listen for notifications
 function listenForNotifications() {
     const user = firebase.auth().currentUser;
-    if (!user) return;
+    if (!user || window.location.pathname !== '/newsession.html') return; // Only run on newsession.html
+
+    const currentSessionId = localStorage.getItem('currentSessionId');
 
     db.collection("users").doc(user.uid).onSnapshot((doc) => {
         if (doc.exists) {
@@ -1051,10 +1064,11 @@ function listenForNotifications() {
             const notifications = userData.notifications || [];
 
             notifications.forEach((notification) => {
-                if (!document.querySelector(`.notification[data-timestamp="${notification.timestamp}"]`)) {
+                // Only show notifications for the current session or join invites
+                if ((notification.sessionId === currentSessionId || notification.type === 'join_session') &&
+                    !document.querySelector(`.notification[data-timestamp="${notification.timestamp}"]`)) {
                     showNotification(notification);
-                    if (notification.type === 'join_session') {
-                        // Join the session when notified
+                    if (notification.type === 'join_session' && notification.sessionId) {
                         joinStudySession(notification.sessionId);
                     }
                 }
