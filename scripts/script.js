@@ -139,6 +139,7 @@ function getSelectedStarValue() {
 function removeTask(checkbox) {
     const taskItem = checkbox.parentElement;
     const taskName = taskItem.querySelector(".task-name"); // Select only the name
+    const taskInput = taskItem.querySelector(".task-name-input");
     const taskId = taskItem.getAttribute('data-task-id');
     const user = firebase.auth().currentUser;
 
@@ -156,15 +157,28 @@ function removeTask(checkbox) {
                             completedAt: firebase.firestore.FieldValue.serverTimestamp()
                         };
 
-                        return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).set(completedTask);
+                        return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).set({
+                            ...taskData,
+                            completed: true,
+                            completedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        
                     }
                 })
                 .then(() => {
                     return db.collection("users").doc(user.uid).collection("tasks").doc(taskId).delete();
                 })
                 .then(() => {
-                    taskName.classList.add("completed-task"); // Apply strikethrough only to name
+                    taskItem.remove();
+                    // Re-fetch from taskHistory to get the stored data
+                    return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).get();
                 })
+                .then((doc) => {
+                    if (doc.exists) {
+                        addTaskToUI(taskId, doc.data(), true);
+                    }
+                })
+                
                 .catch((error) => {
                     console.error("Error moving task to history: ", error);
                 });
@@ -178,18 +192,24 @@ function removeTask(checkbox) {
                         // Move task back to active
                         const activeTask = {
                             ...taskData,
-                            completedAt: null // Reset completed timestamp
+                            completed: false,
+                            completedAt: null
                         };
+                        
 
                         return db.collection("users").doc(user.uid).collection("tasks").doc(taskId).set(activeTask);
                     }
                 })
                 .then(() => {
-                    return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).delete();
+                    taskItem.remove();
+                    return db.collection("users").doc(user.uid).collection("tasks").doc(taskId).get();
                 })
-                .then(() => {
-                    taskName.classList.remove("completed-task"); // Remove strikethrough from name
+                .then((doc) => {
+                    if (doc.exists) {
+                        addTaskToUI(taskId, doc.data(), false);
+                    }
                 })
+                
                 .catch((error) => {
                     console.error("Error moving task back to active: ", error);
                 });
@@ -296,15 +316,21 @@ document.addEventListener("DOMContentLoaded", function () {
             if (user) {
                 // Add task to Firestore
                 db.collection("users").doc(user.uid).collection("tasks").add(task)
-                    .then((docRef) => {
-                        console.log("Task added with ID: ", docRef.id);
+                .then((docRef) => {
+                    return docRef.get().then(doc => {
+                      // If createdAt hasn't populated yet, wait and retry once
+                      if (!doc.exists || !doc.data().createdAt) {
+                        return new Promise(resolve => setTimeout(resolve, 500)).then(() => docRef.get());
+                      }
+                      return doc;
+                    });
+                  })
+                  .then((doc) => {
+                    if (doc.exists) {
+                      const savedTask = doc.data();
+                      addTaskToUI(doc.id, savedTask, false);
+                    }
 
-                        addTaskToUI(docRef.id, task, false);
-
-
-
-                        // Append the new task HTML to the task list
-                        document.getElementById('tasks').insertAdjacentHTML('beforeend', taskHTML);
                         document.getElementById('taskForm').reset();
                         document.getElementById('taskDeadlineInput').value = ''; 
                         document.getElementById('taskDeadlineInput').style.display = 'none';
@@ -408,16 +434,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function addTaskToUI(taskId, taskData, isCompleted) {
     let taskHTML = `
-        <div class="task-item" data-task-id="${taskId}" 
-             style="border-bottom: 1px solid #ccc; padding: 8px;">
-            
-            <input type="checkbox" class="my-3" onclick="removeTask(this)" ${isCompleted ? 'checked' : ''}>
-            <label class="fw-bold task-name ${isCompleted ? 'completed-task' : ''}">${taskData.name}</label>
-            
-            <p class="text-muted mb-1"><strong>Deadline:</strong> ${taskData.deadline || "None"}</p>
-            <p class="text-muted mb-0"><strong>Difficulty:</strong> ${"⭐".repeat(taskData.value || 1)}</p>
+    <div class="task-item" data-task-id="${taskId}" 
+         style="border-bottom: 1px solid #ccc; padding: 8px;">
+
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <input type="checkbox" class="form-check-input" onclick="removeTask(this)" ${isCompleted ? 'checked' : ''}>
+            <input 
+                type="text" 
+                class="form-control form-control-sm task-name-input ${isCompleted ? 'completed-task' : ''}" 
+                value="${taskData.name}" 
+                data-task-id="${taskId}"
+                style="flex: 1;" 
+                ${isCompleted ? "readonly" : ""}
+            />
         </div>
-    `;
+
+        <p class="text-muted mb-1"><strong>Deadline:</strong> ${taskData.deadline || "None"}</p>
+        <p class="text-muted mb-0"><strong>Difficulty:</strong> ${"⭐".repeat(taskData.value || 1)}</p>
+    </div>
+`;
+
 
     document.getElementById('tasks').insertAdjacentHTML('afterbegin', taskHTML);
 }
@@ -1141,3 +1177,29 @@ function getNotification(userId, timestamp) {
             });
     });
 }
+
+
+document.addEventListener('input', function (e) {
+    if (e.target.classList.contains('task-name-input')) {
+        e.target.classList.add('edited'); // visually show it's being edited
+    }
+});
+
+document.addEventListener('blur', function (e) {
+    if (e.target.classList.contains('task-name-input') && e.target.classList.contains('edited')) {
+        const newName = e.target.value.trim();
+        const taskId = e.target.getAttribute('data-task-id');
+        const user = firebase.auth().currentUser;
+
+        if (newName && user && taskId) {
+            db.collection("users").doc(user.uid).collection("tasks").doc(taskId).update({
+                name: newName
+            }).then(() => {
+                e.target.classList.remove('edited');
+                console.log(`✅ Task "${taskId}" updated to "${newName}"`);
+            }).catch((error) => {
+                console.error("❌ Failed to update task:", error);
+            });
+        }
+    }
+}, true);
