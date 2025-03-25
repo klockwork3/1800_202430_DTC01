@@ -146,42 +146,38 @@ function removeTask(checkbox) {
     if (user && taskId) {
         if (checkbox.checked) {
             // ✅ MARK AS COMPLETE
-            db.collection("users").doc(user.uid).collection("tasks").doc(taskId).get()
-                .then((doc) => {
-                    if (doc.exists) {
-                        const taskData = doc.data();
+    db.collection("users").doc(user.uid).collection("tasks").doc(taskId).get()
+    .then((doc) => {
+        if (doc.exists) {
+            const taskData = doc.data();
 
-                        // Move task to history
-                        const completedTask = {
-                            ...taskData,
-                            completedAt: firebase.firestore.FieldValue.serverTimestamp()
-                        };
-
-                        return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).set({
-                            ...taskData,
-                            completed: true,
-                            completedAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                        
-                    }
-                })
+            const completedTask = {
+                ...taskData,
+                completed: true,
+                completedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).set(completedTask)
                 .then(() => {
                     return db.collection("users").doc(user.uid).collection("tasks").doc(taskId).delete();
                 })
                 .then(() => {
                     taskItem.remove();
-                    // Re-fetch from taskHistory to get the stored data
+                    // 🔁 Re-fetch the stored version (with populated timestamp)
                     return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).get();
                 })
                 .then((doc) => {
                     if (doc.exists) {
                         addTaskToUI(taskId, doc.data(), true);
                     }
-                })
-                
-                .catch((error) => {
-                    console.error("Error moving task to history: ", error);
                 });
+            
+        }
+    })
+    .catch((error) => {
+        console.error("Error moving task to history: ", error);
+    });
+
         } else {
             // ✅ MOVE BACK TO ACTIVE TASKS
             db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).get()
@@ -201,14 +197,20 @@ function removeTask(checkbox) {
                     }
                 })
                 .then(() => {
-                    taskItem.remove();
                     return db.collection("users").doc(user.uid).collection("tasks").doc(taskId).get();
                 })
                 .then((doc) => {
                     if (doc.exists) {
+                        const tasksContainer = document.getElementById('tasks');
+                        const existingTask = tasksContainer.querySelector(`[data-task-id="${taskId}"]`);
+                        if (existingTask) {
+                            existingTask.remove();
+                        }
                         addTaskToUI(taskId, doc.data(), false);
                     }
                 })
+                
+                
                 
                 .catch((error) => {
                     console.error("Error moving task back to active: ", error);
@@ -1196,6 +1198,23 @@ document.addEventListener('blur', function (e) {
                 name: newName
             }).then(() => {
                 e.target.classList.remove('edited');
+
+                // ✅ Trigger success feedback animation
+                e.target.classList.add('feedback-success');
+                setTimeout(() => e.target.classList.remove('feedback-success'), 600);
+
+                const taskFeedback = document.getElementById('taskFeedback');
+                if (taskFeedback) {
+                    taskFeedback.classList.remove('d-none');
+                    taskFeedback.classList.add('show');
+
+                    setTimeout(() => {
+                        taskFeedback.classList.remove('show');
+                        taskFeedback.classList.add('d-none');
+                    }, 2000);
+                }
+
+
                 console.log(`✅ Task "${taskId}" updated to "${newName}"`);
             }).catch((error) => {
                 console.error("❌ Failed to update task:", error);
