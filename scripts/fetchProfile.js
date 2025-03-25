@@ -25,7 +25,8 @@ function fetchUserData(user) {
                         // Update user information
                         userDataElement.innerHTML = `
                     <p><strong>Name:</strong> ${userData.name}</p>
-                    <p><strong>Email:</strong> ${userData.email}</p>
+                    <p><strong>Pronuns:</strong> ${userData.pronouns}</p>
+                    <p><strong>Bio:</strong> ${userData.bio}</p>
                 `;
 
                         // Only show stat points in the statPoints div

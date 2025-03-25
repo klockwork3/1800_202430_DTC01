@@ -34,10 +34,12 @@ function updateUserProfile(user) {
             bio: bio
       }, { merge: true })
             .then(() => {
-                  alert("Profile updated successfully!");
-                  fetchUserData(user); // Refresh displayed data
+
+                  window.location.href = 'profile.html';
+
             })
             .catch(error => {
                   console.error("Error updating profile: ", error);
+                  alert("Error updating profile!");
             });
 }
