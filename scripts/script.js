@@ -481,202 +481,197 @@ document.addEventListener("DOMContentLoaded", function () {
 // Chat system implementation for CheckMate
 function createStudySession() {
     const user = firebase.auth().currentUser;
-    
-    // Check if user already has an active session
-    db.collection("users").doc(user.uid).get()
-        .then((doc) => {
-            if (doc.exists && doc.data().activeSessionId) {
-                // User already has an active session, join that session
-                const existingSessionId = doc.data().activeSessionId;
-                joinStudySession(existingSessionId);
-            } else {
-                // Create a new session
-                const newSessionRef = db.collection("studySessions").doc();
-                
-                const sessionData = {
-                    host: user.uid,
-                    hostName: user.displayName || 'Anonymous',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    status: 'active',
-                    participants: [user.uid]
-                };
 
-                newSessionRef.set(sessionData)
-                    .then(() => {
-                        // Store the session ID for current user in both localStorage and Firestore
-                        localStorage.setItem('currentSessionId', newSessionRef.id);
-                        
-                        // Update user document with active session
-                        return db.collection("users").doc(user.uid).set({
-                            activeSessionId: newSessionRef.id
-                        }, { merge: true });
-                    })
-                    .then(() => {
-                        // Start listening to session changes
-                        listenToSessionChanges(newSessionRef.id);
-                        
-                        console.log('Study session created with ID: ', newSessionRef.id);
-                    })
-                    .catch((error) => {
-                        console.error("Error creating study session: ", error);
-                    });
-            }
-        })
-        .catch((error) => {
-            console.error("Error checking existing session: ", error);
-        });
-}
+// Check if user already has an active session
+db.collection("users").doc(user.uid).get()
+    .then((doc) => {
+        if (doc.exists && doc.data().activeSessionId) {
+            // User already has an active session, join that session
+            const existingSessionId = doc.data().activeSessionId;
+            joinStudySession(existingSessionId);
+        } else {
+            // Create a new session
+            const newSessionRef = db.collection("studySessions").doc();
+            
+            const sessionData = {
+                host: user.uid,
+                hostName: user.displayName || 'Anonymous',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                status: 'active',
+                participants: [user.uid]
+            };
 
-function joinStudySession(sessionId) {
+            newSessionRef.set(sessionData)
+                .then(() => {
+                    // Store the session ID for current user in both localStorage and Firestore
+                    localStorage.setItem('currentSessionId', newSessionRef.id);
+                    
+                    // Update user document with active session
+                    return db.collection("users").doc(user.uid).set({
+                        activeSessionId: newSessionRef.id
+                    }, { merge: true });
+                })
+                .then(() => {
+                    // Start listening to session changes
+                    listenToSessionChanges(newSessionRef.id);
+                    
+                    console.log('Study session created with ID: ', newSessionRef.id);
+                })
+                .catch((error) => {
+                    console.error("Error creating study session: ", error);
+                });
+        }
+    })
+    .catch((error) => {
+        console.error("Error checking existing session: ", error);
+    });
+
+}function joinStudySession(sessionId) {
     const user = firebase.auth().currentUser;
-    
-    // Retrieve session details first
-    db.collection("studySessions").doc(sessionId).get()
-        .then((doc) => {
-            if (doc.exists) {
-                const sessionData = doc.data();
-                
-                // Check if user is already in the session
-                if (!sessionData.participants.includes(user.uid)) {
-                    // Add user to participants
-                    return db.collection("studySessions").doc(sessionId).update({
-                        participants: firebase.firestore.FieldValue.arrayUnion(user.uid)
-                    });
-                }
-                return Promise.resolve();
-            }
+
+// Use a transaction to ensure atomic updates
+return db.runTransaction((transaction) => {
+    const sessionRef = db.collection("studySessions").doc(sessionId);
+    const userRef = db.collection("users").doc(user.uid);
+
+    return transaction.get(sessionRef).then((sessionDoc) => {
+        if (!sessionDoc.exists) {
             throw new Error('Session does not exist');
-        })
-        .then(() => {
-            // Update user's active session
-            return db.collection("users").doc(user.uid).set({
-                activeSessionId: sessionId
-            }, { merge: true });
-        })
-        .then(() => {
-            // Store session ID in localStorage
-            localStorage.setItem('currentSessionId', sessionId);
-            
-            // Start listening to session changes
-            listenToSessionChanges(sessionId);
-            
-            console.log('Joined/Rejoined study session: ', sessionId);
-        })
-        .catch((error) => {
-            console.error("Error joining study session: ", error);
+        }
+
+        const sessionData = sessionDoc.data();
+        const participants = sessionData.participants || [];
+        
+        // Ensure user is in the participants list
+        if (!participants.includes(user.uid)) {
+            transaction.update(sessionRef, {
+                participants: firebase.firestore.FieldValue.arrayUnion(user.uid)
+            });
+        }
+
+        // Remove any existing active session
+        transaction.update(userRef, {
+            activeSessionId: firebase.firestore.FieldValue.delete()
         });
+
+        // Set the new session as active
+        transaction.update(userRef, {
+            activeSessionId: sessionId
+        });
+
+        return sessionId;
+    });
+})
+.then((sessionId) => {
+    // Store in localStorage
+    localStorage.setItem('currentSessionId', sessionId);
+    
+    // Start listeners
+    listenToSessionChanges(sessionId);
+    loadChatMessages(sessionId);
+    
+    console.log('Joined/Rejoined study session:', sessionId);
+    
+    return sessionId;
+})
+.catch((error) => {
+    console.error("Error joining study session:", error);
+    throw error;
+});
+
 }
 function endStudySession() {
     const user = firebase.auth().currentUser;
     const currentSessionId = localStorage.getItem('currentSessionId');
 
-    if (!user || !currentSessionId) {
-        console.error("No user or session ID found");
-        return;
-    }
-
-    if (justJoined) {
-        console.log(`User ${user.uid} just joined, skipping endStudySession`);
-        return;
-    }
-
-    db.collection("studySessions").doc(currentSessionId).get()
-        .then((doc) => {
-            if (doc.exists) {
-                const sessionData = doc.data();
-                const participants = sessionData.participants || [];
-                const updatedParticipants = participants.filter(uid => uid !== user.uid);
-
-                const notification = {
-                    type: 'user_left',
-                    message: `${user.displayName || 'Anonymous'} has left the session`,
-                    sessionId: currentSessionId,
-                    timestamp: new Date().toISOString(),
-                    except: user.uid
-                };
-                
-                return db.collection("studySessions").doc(currentSessionId).update({
-                    participants: updatedParticipants,
-                    leftUsers: firebase.firestore.FieldValue.arrayUnion(user.uid)
-                }).then(() => {
-                    notifyParticipants(currentSessionId, notification);
-                    return currentSessionId;
-                });
-            }
-            throw new Error("Session does not exist");
-        })
-        .then((sessionId) => {
-            return db.collection("users").doc(user.uid).update({
-                activeSessionId: firebase.firestore.FieldValue.delete()
-            }).then(() => sessionId);
-        })
-        .then((sessionId) => {
-            localStorage.removeItem('currentSessionId');
-            console.log('User left the study session');
-
-            // Stop all listeners
-            if (sessionListenerUnsubscribe) {
-                sessionListenerUnsubscribe();
-                sessionListenerUnsubscribe = null;
-            }
-            if (chatListenerUnsubscribe) {
-                chatListenerUnsubscribe();
-                chatListenerUnsubscribe = null;
-            }
-
-            document.getElementById("session").innerText = "Not started";
-            const messagesContainer = document.getElementById('chatMessages');
-            if (messagesContainer) {
-                messagesContainer.innerHTML = '';
-            }
-            const chatInput = document.getElementById('chatMessageInput');
-            const sendButton = document.getElementById('sendChatButton');
-            if (chatInput) chatInput.disabled = true;
-            if (sendButton) sendButton.disabled = true;
-        })
-        .catch((error) => {
-            console.error("Error ending study session:", error);
-        });
+if (!user || !currentSessionId) {
+    console.error("No user or session ID found");
+    return;
 }
 
+if (justJoined) {
+    console.log(`User ${user.uid} just joined, skipping endStudySession`);
+    return;
+}
 
-function listenToSessionChanges(sessionId) {
+db.collection("studySessions").doc(currentSessionId).get()
+    .then((doc) => {
+        if (doc.exists) {
+            const sessionData = doc.data();
+            const participants = sessionData.participants || [];
+            const updatedParticipants = participants.filter(uid => uid !== user.uid);
+
+            const notification = {
+                type: 'user_left',
+                message: `${user.displayName || 'Anonymous'} has left the session`,
+                sessionId: currentSessionId,
+                timestamp: new Date().toISOString(),
+                except: user.uid
+            };
+            
+            return db.collection("studySessions").doc(currentSessionId).update({
+                participants: updatedParticipants,
+                leftUsers: firebase.firestore.FieldValue.arrayUnion(user.uid)
+            }).then(() => {
+                notifyParticipants(currentSessionId, notification);
+                return currentSessionId;
+            });
+        }
+        throw new Error("Session does not exist");
+    })
+    .then((sessionId) => {
+        return db.collection("users").doc(user.uid).update({
+            activeSessionId: firebase.firestore.FieldValue.delete()
+        }).then(() => sessionId);
+    })
+    .then((sessionId) => {
+        localStorage.removeItem('currentSessionId');
+        console.log('User left the study session');
+
+        // Stop all listeners
+        if (sessionListenerUnsubscribe) {
+            sessionListenerUnsubscribe();
+            sessionListenerUnsubscribe = null;
+        }
+        if (chatListenerUnsubscribe) {
+            chatListenerUnsubscribe();
+            chatListenerUnsubscribe = null;
+        }
+
+        document.getElementById("session").innerText = "Not started";
+        const messagesContainer = document.getElementById('chatMessages');
+        if (messagesContainer) {
+            messagesContainer.innerHTML = '';
+        }
+        const chatInput = document.getElementById('chatMessageInput');
+        const sendButton = document.getElementById('sendChatButton');
+        if (chatInput) chatInput.disabled = true;
+        if (sendButton) sendButton.disabled = true;
+    })
+    .catch((error) => {
+        console.error("Error ending study session:", error);
+    });
+
+}function listenToSessionChanges(sessionId) {
     const user = firebase.auth().currentUser;
     if (!user) return;
 
-    // Stop any existing listener
-    if (sessionListenerUnsubscribe) {
-        sessionListenerUnsubscribe();
-        sessionListenerUnsubscribe = null;
-    }
+// Stop any existing listener
+if (sessionListenerUnsubscribe) {
+    sessionListenerUnsubscribe();
+    sessionListenerUnsubscribe = null;
+}
 
-    sessionListenerUnsubscribe = db.collection("studySessions").doc(sessionId)
-        .onSnapshot((doc) => {
-            if (doc.exists) {
-                const sessionData = doc.data();
-                const participants = sessionData.participants || [];
-                if (participants.includes(user.uid)) {
-                    console.log('Current session participants:', participants);
-                    loadChatMessages(sessionId);
-                } else {
-                    // User is no longer a participant, stop listeners and clear UI
-                    if (sessionListenerUnsubscribe) {
-                        sessionListenerUnsubscribe();
-                        sessionListenerUnsubscribe = null;
-                    }
-                    if (chatListenerUnsubscribe) {
-                        chatListenerUnsubscribe();
-                        chatListenerUnsubscribe = null;
-                    }
-                    const messagesContainer = document.getElementById('chatMessages');
-                    if (messagesContainer) {
-                        messagesContainer.innerHTML = '<p>You are no longer in this session.</p>';
-                    }
-                    localStorage.removeItem('currentSessionId');
-                    console.log(`User ${user.uid} no longer in session ${sessionId}`);
-                }
+sessionListenerUnsubscribe = db.collection("studySessions").doc(sessionId)
+    .onSnapshot((doc) => {
+        if (doc.exists) {
+            const sessionData = doc.data();
+            const participants = sessionData.participants || [];
+            if (participants.includes(user.uid)) {
+                console.log('Current session participants:', participants);
+                loadChatMessages(sessionId);
             } else {
-                // Session deleted, clean up
+                // User is no longer a participant, stop listeners and clear UI
                 if (sessionListenerUnsubscribe) {
                     sessionListenerUnsubscribe();
                     sessionListenerUnsubscribe = null;
@@ -685,154 +680,163 @@ function listenToSessionChanges(sessionId) {
                     chatListenerUnsubscribe();
                     chatListenerUnsubscribe = null;
                 }
+                const messagesContainer = document.getElementById('chatMessages');
+                if (messagesContainer) {
+                    messagesContainer.innerHTML = '<p>You are no longer in this session.</p>';
+                }
                 localStorage.removeItem('currentSessionId');
-                console.log(`Session ${sessionId} does not exist`);
+                console.log(`User ${user.uid} no longer in session ${sessionId}`);
             }
-        }, (error) => {
-            console.error("Error in session listener:", error);
-        });
-}
+        } else {
+            // Session deleted, clean up
+            if (sessionListenerUnsubscribe) {
+                sessionListenerUnsubscribe();
+                sessionListenerUnsubscribe = null;
+            }
+            if (chatListenerUnsubscribe) {
+                chatListenerUnsubscribe();
+                chatListenerUnsubscribe = null;
+            }
+            localStorage.removeItem('currentSessionId');
+            console.log(`Session ${sessionId} does not exist`);
+        }
+    }, (error) => {
+        console.error("Error in session listener:", error);
+    });
 
-
-function sendMessage() {
+}function sendMessage() {
     const messageInput = document.getElementById('chatMessageInput');
     const message = messageInput.value.trim();
 
-    if (message) {
-        const user = firebase.auth().currentUser;
-        const currentSessionId = localStorage.getItem('currentSessionId');
-
-        // Check if user is still in the session
-        db.collection("studySessions").doc(currentSessionId).get()
-            .then((doc) => {
-                if (doc.exists) {
-                    const sessionData = doc.data();
-                    const participants = sessionData.participants || [];
-                    
-                    if (participants.includes(user.uid)) {
-                        // User is still in the session, send message
-                        const chatMessage = {
-                            text: message,
-                            sender: user.uid,
-                            senderName: user.displayName || 'Anonymous',
-                            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                            sessionId: currentSessionId
-                        };
-
-                        return db.collection("chatMessages").add(chatMessage);
-                    } else {
-                        throw new Error("Not a participant of this session");
-                    }
-                }
-                throw new Error("Session does not exist");
-            })
-            .then(() => {
-                messageInput.value = ''; // Clear input after sending
-            })
-            .catch((error) => {
-                console.error("Error sending message: ", error);
-                alert('Cannot send message. You may have left the session.');
-                
-                // Disable chat input
-                messageInput.disabled = true;
-                const sendButton = document.getElementById('sendChatButton');
-                if (sendButton) sendButton.disabled = true;
-            });
-    }
-}
-
-function loadChatMessages(sessionId) {
+if (message) {
     const user = firebase.auth().currentUser;
-    const messagesContainer = document.getElementById('chatMessages');
-    
-    if (!messagesContainer || !user) return;
+    const currentSessionId = localStorage.getItem('currentSessionId');
 
-    // Clear existing messages
-    messagesContainer.innerHTML = ''; 
-
-    // Stop any existing chat listener
-    if (chatListenerUnsubscribe) {
-        chatListenerUnsubscribe();
-        chatListenerUnsubscribe = null;
-    }
-
-    // Check if user is still a participant
-    db.collection("studySessions").doc(sessionId).get()
+    // Check if user is still in the session
+    db.collection("studySessions").doc(currentSessionId).get()
         .then((doc) => {
             if (doc.exists) {
                 const sessionData = doc.data();
                 const participants = sessionData.participants || [];
                 
-                if (!participants.includes(user.uid)) {
-                    messagesContainer.innerHTML = '<p>You are no longer in this session.</p>';
-                    const chatInput = document.getElementById('chatMessageInput');
-                    const sendButton = document.getElementById('sendChatButton');
-                    if (chatInput) chatInput.disabled = true;
-                    if (sendButton) sendButton.disabled = true;
-                    console.log(`User ${user.uid} not a participant in session ${sessionId}`);
-                    return;
+                if (participants.includes(user.uid)) {
+                    // User is still in the session, send message
+                    const chatMessage = {
+                        text: message,
+                        sender: user.uid,
+                        senderName: user.displayName || 'Anonymous',
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        sessionId: currentSessionId
+                    };
+
+                    return db.collection("chatMessages").add(chatMessage);
+                } else {
+                    throw new Error("Not a participant of this session");
                 }
-
-                // Real-time listener for chat messages
-                chatListenerUnsubscribe = db.collection("chatMessages")
-                    .where("sessionId", "==", sessionId)
-                    .onSnapshot((querySnapshot) => {
-                        messagesContainer.innerHTML = '';
-                        const sortedMessages = querySnapshot.docs
-                            .map(doc => doc.data())
-                            .sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
-
-                        sortedMessages.forEach((messageData) => {
-                            addMessageToUI(messageData);
-                        });
-                        console.log(`Chat updated for session ${sessionId}`);
-                    }, (error) => {
-                        console.error("Error in chat messages snapshot: ", error);
-                    });
-            } else {
-                console.log(`Session ${sessionId} does not exist`);
             }
+            throw new Error("Session does not exist");
+        })
+        .then(() => {
+            messageInput.value = ''; // Clear input after sending
         })
         .catch((error) => {
-            console.error("Error checking session for chat: ", error);
+            console.error("Error sending message: ", error);
+            alert('Cannot send message. You may have left the session.');
+            
+            // Disable chat input
+            messageInput.disabled = true;
+            const sendButton = document.getElementById('sendChatButton');
+            if (sendButton) sendButton.disabled = true;
         });
 }
 
+}function loadChatMessages(sessionId) {
+    const user = firebase.auth().currentUser;
+    const messagesContainer = document.getElementById('chatMessages');
 
-function addMessageToUI(messageData) {
+if (!messagesContainer || !user) return;
+
+// Clear existing messages
+messagesContainer.innerHTML = ''; 
+
+// Stop any existing chat listener
+if (chatListenerUnsubscribe) {
+    chatListenerUnsubscribe();
+    chatListenerUnsubscribe = null;
+}
+
+// Check if user is still a participant
+db.collection("studySessions").doc(sessionId).get()
+    .then((doc) => {
+        if (doc.exists) {
+            const sessionData = doc.data();
+            const participants = sessionData.participants || [];
+            
+            if (!participants.includes(user.uid)) {
+                messagesContainer.innerHTML = '<p>You are no longer in this session.</p>';
+                const chatInput = document.getElementById('chatMessageInput');
+                const sendButton = document.getElementById('sendChatButton');
+                if (chatInput) chatInput.disabled = true;
+                if (sendButton) sendButton.disabled = true;
+                console.log(`User ${user.uid} not a participant in session ${sessionId}`);
+                return;
+            }
+
+            // Real-time listener for chat messages
+            chatListenerUnsubscribe = db.collection("chatMessages")
+                .where("sessionId", "==", sessionId)
+                .onSnapshot((querySnapshot) => {
+                    messagesContainer.innerHTML = '';
+                    const sortedMessages = querySnapshot.docs
+                        .map(doc => doc.data())
+                        .sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+
+                    sortedMessages.forEach((messageData) => {
+                        addMessageToUI(messageData);
+                    });
+                    console.log(`Chat updated for session ${sessionId}`);
+                }, (error) => {
+                    console.error("Error in chat messages snapshot: ", error);
+                });
+        } else {
+            console.log(`Session ${sessionId} does not exist`);
+        }
+    })
+    .catch((error) => {
+        console.error("Error checking session for chat: ", error);
+    });
+
+}function addMessageToUI(messageData) {
     const messagesContainer = document.getElementById('chatMessages');
     const currentUser = firebase.auth().currentUser;
-    
-    if (!messagesContainer || !currentUser) return;
 
-    const messageDiv = document.createElement('div');
-    messageDiv.classList.add('chat-message');
-    
-    // Differentiate between sent and received messages
-    if (messageData.sender === currentUser.uid) {
-        messageDiv.classList.add('sent-message');
-    } else {
-        messageDiv.classList.add('received-message');
-    }
+if (!messagesContainer || !currentUser) return;
 
-    messageDiv.innerHTML = `
-        <strong>${messageData.senderName}</strong>
-        <p>${messageData.text}</p>
-        <small>${formatTimestamp(messageData.timestamp)}</small>
-    `;
+const messageDiv = document.createElement('div');
+messageDiv.classList.add('chat-message');
 
-    messagesContainer.appendChild(messageDiv);
-    
-    // Auto-scroll to bottom
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+// Differentiate between sent and received messages
+if (messageData.sender === currentUser.uid) {
+    messageDiv.classList.add('sent-message');
+} else {
+    messageDiv.classList.add('received-message');
 }
 
-function formatTimestamp(timestamp) {
+messageDiv.innerHTML = `
+    <strong>${messageData.senderName}</strong>
+    <p>${messageData.text}</p>
+    <small>${formatTimestamp(messageData.timestamp)}</small>
+`;
+
+messagesContainer.appendChild(messageDiv);
+
+// Auto-scroll to bottom
+messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+}function formatTimestamp(timestamp) {
     if (!timestamp) return '';
     return new Date(timestamp.seconds * 1000).toLocaleTimeString();
-}
-
-// Getting current session ID
+}// Getting current session ID
 function getCurrentSessionId() {
     const sessionId = localStorage.getItem('currentSessionId');
     if (!sessionId) {
@@ -841,152 +845,143 @@ function getCurrentSessionId() {
         return null;
     }
     return sessionId;
+}// Modify the existing DOMContentLoaded listener
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        updateUserStatus(true);
+
+    // Remove any lingering session first
+    db.collection("users").doc(user.uid).update({
+        activeSessionId: firebase.firestore.FieldValue.delete()
+    })
+    .then(() => {
+        const sessionId = localStorage.getItem('currentSessionId');
+        
+        if (sessionId) {
+            // Try to join the existing session
+            return db.collection("studySessions").doc(sessionId).get()
+                .then((doc) => {
+                    if (doc.exists && doc.data().participants.includes(user.uid)) {
+                        return joinStudySession(sessionId);
+                    } else {
+                        // Invalid session, create a new one
+                        localStorage.removeItem('currentSessionId');
+                        return createStudySession();
+                    }
+                });
+        } else {
+            // No existing session, create a new one
+            return createStudySession();
+        }
+    })
+    .then(() => {
+        // Always listen for notifications
+        listenForNotifications();
+    })
+    .catch((error) => {
+        console.error("Error during authentication state change:", error);
+        createStudySession();
+    });
+} else {
+    window.location.href = 'login.html';
 }
 
-// Modify the existing DOMContentLoaded listener
-document.addEventListener('DOMContentLoaded', function() {
-    // Toggle task completion (strikethrough & gray-out)
-    document.getElementById("tasks").addEventListener("change", function (event) {
-        if (event.target.type === "checkbox") {
-            let taskLabel = event.target.nextElementSibling;
-            if (event.target.checked) {
-                taskLabel.classList.add("completed-task");
-            } else {
-                taskLabel.classList.remove("completed-task");
-            }
-        }
-    });
-
-    // Toggle all task details
-    const toggleAllBtn = document.getElementById('toggleAllDetailsButton');
-    let showingAll = false;
-
-    if (toggleAllBtn) {
-        toggleAllBtn.addEventListener('click', function () {
-            const details = document.querySelectorAll('.task-details');
-            showingAll = !showingAll;
-            details.forEach(detail => {
-                detail.style.display = showingAll ? 'block' : 'none';
-            });
-            toggleAllBtn.textContent = showingAll ? 'Hide All Details' : 'Show All Details';
-        });
-    }
-
-    // Chat functionality
-    const sendButton = document.getElementById('sendChatButton');
-    const chatInput = document.getElementById('chatMessageInput');
-
-    if (sendButton) {
-        sendButton.addEventListener('click', sendMessage);
-    }
-
-    if (chatInput) {
-        chatInput.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
-        });
-    }
-
-    // Authentication and session management
-    firebase.auth().onAuthStateChanged(function(user) {
-        if (user) {
-            // Check if there's an existing session
-            const existingSessionId = localStorage.getItem('currentSessionId');
-            
-            if (existingSessionId) {
-                // Load messages for existing session
-                loadChatMessages(existingSessionId);
-            } else {
-                // Create a new session if none exists
-                createStudySession();
-            }
-        } else {
-            // Redirect to login if no user is logged in
-            window.location.href = 'login.html';
-        }
-    });
 });
 // Function to toggle chat list (similar to task list toggle)
 function toggleChatList() {
     var chatList = document.getElementById('chatList');
     chatList.classList.toggle('active');
 }
-
+justJoined = false
 // Function to add users to the session
 function inviteUserToSession(invitedUserId) {
     const currentSessionId = localStorage.getItem('currentSessionId');
     const currentUser = firebase.auth().currentUser;
 
-    if (!currentUser || !currentSessionId) {
-        console.error("No active session or user not logged in");
-        return;
-    }
+if (!currentUser || !currentSessionId) {
+    console.error("No active session or user not logged in");
+    return;
+}
 
-    db.collection("studySessions").doc(currentSessionId).get()
-        .then((doc) => {
-            if (doc.exists) {
-                const participants = doc.data().participants || [];
-                if (participants.includes(invitedUserId)) {
-                    console.log("User is already in the session");
-                    return Promise.resolve();
-                }
-                console.log(`Adding user ${invitedUserId} to session ${currentSessionId}`);
-                return db.collection("studySessions").doc(currentSessionId).update({
-                    participants: firebase.firestore.FieldValue.arrayUnion(invitedUserId)
-                });
-            }
+// Transaction to ensure atomic updates and prevent race conditions
+db.runTransaction((transaction) => {
+    const currentSessionRef = db.collection("studySessions").doc(currentSessionId);
+    const invitedUserRef = db.collection("users").doc(invitedUserId);
+
+    return transaction.get(currentSessionRef).then((sessionDoc) => {
+        if (!sessionDoc.exists) {
             throw new Error("Session does not exist");
-        })
-        .then(() => {
-            console.log(`Setting activeSessionId for user ${invitedUserId}`);
-            return db.collection("users").doc(invitedUserId).set({
-                activeSessionId: currentSessionId
-            }, { merge: true });
-        })
-        .then(() => {
-            return db.collection("users").doc(invitedUserId).get();
-        })
-        .then((userDoc) => {
-            const invitedUserName = userDoc.exists ? userDoc.data().displayName || 'Anonymous' : 'Anonymous';
-            const timestamp = new Date().toISOString();
-    
-            const joinNotification = {
-                type: 'user_joined',
-                message: `${invitedUserName} has joined the session`,
-                sessionId: currentSessionId,
-                timestamp: timestamp,
-                except: invitedUserId
-            };
-            console.log(`Sending join notification for ${invitedUserId}: ${joinNotification.message}`);
-            notifyParticipants(currentSessionId, joinNotification);
-    
-            const inviteNotification = {
-                type: 'join_session',
-                message: `You have been invited to a study session!`,
-                sessionId: currentSessionId,
-                timestamp: timestamp,
-                except: currentUser.uid
-            };
-            console.log(`Sending invite notification to ${invitedUserId}: ${inviteNotification.message}`);
-            db.collection("users").doc(invitedUserId).update({
-                notifications: firebase.firestore.FieldValue.arrayUnion(inviteNotification)
-            });
-    
-            justJoined = true; // Set flag
-            setTimeout(() => justJoined = false, 2000); // Reset after 2 seconds
-    
-            console.log(`User ${invitedUserId} invited to session ${currentSessionId}`);
-            alert(`User invited successfully!`);
-            toggleUserList();
-        })
-        .catch((error) => {
-            console.error("Error inviting user:", error);
-            alert("Failed to invite user. Please try again.");
-        });
-    }
+        }
 
-function toggleUserList() {
+        const sessionData = sessionDoc.data();
+        const participants = sessionData.participants || [];
+
+        // If user is already in the session, no need to add again
+        if (participants.includes(invitedUserId)) {
+            return;
+        }
+
+        // First, remove user from any existing active session
+        transaction.update(invitedUserRef, {
+            activeSessionId: firebase.firestore.FieldValue.delete()
+        });
+
+        // Add user to the new session
+        transaction.update(currentSessionRef, {
+            participants: firebase.firestore.FieldValue.arrayUnion(invitedUserId)
+        });
+
+        // Set the new session as active for the invited user
+        transaction.update(invitedUserRef, {
+            activeSessionId: currentSessionId
+        });
+
+        return currentSessionId;
+    });
+})
+.then((sessionId) => {
+    if (sessionId) {
+        // Prepare and send notifications
+        return db.collection("users").doc(invitedUserId).get()
+            .then((userDoc) => {
+                const invitedUserName = userDoc.exists ? userDoc.data().displayName || 'Anonymous' : 'Anonymous';
+                const timestamp = new Date().toISOString();
+
+                // Notification for other participants
+                const joinNotification = {
+                    type: 'user_joined',
+                    message: `${invitedUserName} has joined the session`,
+                    sessionId: sessionId,
+                    timestamp: timestamp,
+                    except: invitedUserId
+                };
+                notifyParticipants(sessionId, joinNotification);
+
+                // Notification for the invited user
+                const inviteNotification = {
+                    type: 'join_session',
+                    message: `You have been invited to a study session!`,
+                    sessionId: sessionId,
+                    timestamp: timestamp,
+                    except: currentUser.uid
+                };
+
+                return db.collection("users").doc(invitedUserId).update({
+                    notifications: firebase.firestore.FieldValue.arrayUnion(inviteNotification)
+                });
+            });
+    }
+})
+.then(() => {
+    alert(`User invited successfully!`);
+    toggleUserList();
+})
+.catch((error) => {
+    console.error("Error inviting user:", error);
+    alert("Failed to invite user. Please try again.");
+});
+
+}function toggleUserList() {
     const userList = document.getElementById('userList');
     userList.classList.toggle('active');
     if (userList.classList.contains('active')) {
@@ -998,59 +993,56 @@ function loadOnlineUsers() {
     const onlineUsersContainer = document.getElementById('onlineUsers');
     if (!onlineUsersContainer) return;
 
-    onlineUsersContainer.innerHTML = '<p>Loading users...</p>'; // Loading indicator
+onlineUsersContainer.innerHTML = '<p>Loading users...</p>'; // Loading indicator
 
-    // Fetch all users and filter for online status
-    db.collection("users").where("isOnline", "==", true).get()
-        .then((querySnapshot) => {
-            onlineUsersContainer.innerHTML = ''; // Clear loading message
-            if (querySnapshot.empty) {
-                onlineUsersContainer.innerHTML = '<p>No users online</p>';
-                return;
-            }
+// Fetch all users and filter for online status
+db.collection("users").where("isOnline", "==", true).get()
+    .then((querySnapshot) => {
+        onlineUsersContainer.innerHTML = ''; // Clear loading message
+        if (querySnapshot.empty) {
+            onlineUsersContainer.innerHTML = '<p>No users online</p>';
+            return;
+        }
 
-            querySnapshot.forEach((doc) => {
-                const userData = doc.data();
-                const userId = doc.id;
-                const currentUser = firebase.auth().currentUser;
+        querySnapshot.forEach((doc) => {
+            const userData = doc.data();
+            const userId = doc.id;
+            const currentUser = firebase.auth().currentUser;
 
-                // Don't show the current user in the list
-                if (userId === currentUser.uid) return;
+            // Don't show the current user in the list
+            if (userId === currentUser.uid) return;
 
-                const userHTML = `
-                    <div class="user-item d-flex justify-content-between align-items-center mb-2" data-user-id="${userId}">
-                        <span>${userData.displayName || 'Anonymous'}</span>
-                        <button class="btn btn-sm btn-success add-user-btn" onclick="inviteUserToSession('${userId}')">
-                            Add to Session
-                        </button>
-                    </div>
-                `;
-                onlineUsersContainer.insertAdjacentHTML('beforeend', userHTML);
-            });
-        })
-        .catch((error) => {
-            console.error("Error loading online users:", error);
-            onlineUsersContainer.innerHTML = '<p>Error loading users</p>';
+            const userHTML = `
+                <div class="user-item d-flex justify-content-between align-items-center mb-2" data-user-id="${userId}">
+                    <span>${userData.displayName || 'Anonymous'}</span>
+                    <button class="btn btn-sm btn-success add-user-btn" onclick="inviteUserToSession('${userId}')">
+                        Add to Session
+                    </button>
+                </div>
+            `;
+            onlineUsersContainer.insertAdjacentHTML('beforeend', userHTML);
         });
-}
+    })
+    .catch((error) => {
+        console.error("Error loading online users:", error);
+        onlineUsersContainer.innerHTML = '<p>Error loading users</p>';
+    });
 
-// Update user online status
+}// Update user online status
 function updateUserStatus(isOnline) {
     const user = firebase.auth().currentUser;
     if (!user) return;
 
-    db.collection("users").doc(user.uid).set({
-        isOnline: isOnline,
-        displayName: user.displayName || 'Anonymous', // Ensure displayName is stored
-        lastActive: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true })
-    .catch((error) => {
-        console.error("Error updating user status:", error);
-    });
-}
+db.collection("users").doc(user.uid).set({
+    isOnline: isOnline,
+    displayName: user.displayName || 'Anonymous', // Ensure displayName is stored
+    lastActive: firebase.firestore.FieldValue.serverTimestamp()
+}, { merge: true })
+.catch((error) => {
+    console.error("Error updating user status:", error);
+});
 
-
-firebase.auth().onAuthStateChanged((user) => {
+}firebase.auth().onAuthStateChanged((user) => {
     if (user) {
         updateUserStatus(true);
         const sessionId = localStorage.getItem('currentSessionId');
@@ -1073,9 +1065,7 @@ firebase.auth().onAuthStateChanged((user) => {
     } else {
         window.location.href = 'login.html';
     }
-});
-
-// Handle logout to set user offline
+});// Handle logout to set user offline
 document.addEventListener("DOMContentLoaded", function () {
     const logoutButton = document.getElementById("logoutButton");
     if (logoutButton) {
@@ -1092,58 +1082,68 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
     }
-});
-
-function notifyParticipants(sessionId, notification) {
+});function notifyParticipants(sessionId, notification) {
     db.collection("studySessions").doc(sessionId).get()
         .then((doc) => {
             if (doc.exists) {
                 const sessionData = doc.data();
                 const participants = sessionData.participants || [];
 
-                // Send notification to all participants except the one specified in notification.except
-                participants.forEach((participantId) => {
-                    if (participantId !== notification.except) {
-                        db.collection("users").doc(participantId).update({
-                            notifications: firebase.firestore.FieldValue.arrayUnion(notification)
-                        })
-                        .catch((error) => {
-                            console.error("Error sending notification to user:", participantId, error);
-                        });
-                    }
-                });
-            }
-        })
-        .catch((error) => {
-            console.error("Error fetching session for notification:", error);
-        });
+            // Send notification to all participants except the one specified in notification.except
+            participants.forEach((participantId) => {
+                if (participantId !== notification.except) {
+                    db.collection("users").doc(participantId).update({
+                        notifications: firebase.firestore.FieldValue.arrayUnion(notification)
+                    })
+                    .catch((error) => {
+                        console.error("Error sending notification to user:", participantId, error);
+                    });
+                }
+            });
+        }
+    })
+    .catch((error) => {
+        console.error("Error fetching session for notification:", error);
+    });
+
 }
 // Listen for notifications
 function listenForNotifications() {
     const user = firebase.auth().currentUser;
-    if (!user || window.location.pathname !== '/newsession.html') return; // Only run on newsession.html
+    if (!user) return;
 
-    const currentSessionId = localStorage.getItem('currentSessionId');
+db.collection("users").doc(user.uid).onSnapshot((doc) => {
+    if (doc.exists) {
+        const userData = doc.data();
+        const notifications = userData.notifications || [];
 
-    db.collection("users").doc(user.uid).onSnapshot((doc) => {
-        if (doc.exists) {
-            const userData = doc.data();
-            const notifications = userData.notifications || [];
+        notifications.forEach((notification) => {
+            // Focus on join session notifications
+            if (notification.type === 'join_session' && notification.sessionId) {
+                // Remove any existing active session first
+                db.collection("users").doc(user.uid).update({
+                    activeSessionId: firebase.firestore.FieldValue.delete()
+                })
+                .then(() => {
+                    // Join the new session
+                    return joinStudySession(notification.sessionId);
+                })
+                .then(() => {
+                    // Remove the notification after processing
+                    return db.collection("users").doc(user.uid).update({
+                        notifications: firebase.firestore.FieldValue.arrayRemove(notification)
+                    });
+                })
+                .catch((error) => {
+                    console.error("Error processing join session notification:", error);
+                });
+            }
+        });
+    }
+}, (error) => {
+    console.error("Error listening to notifications:", error);
+});
 
-            notifications.forEach((notification) => {
-                // Only show notifications for the current session or join invites
-                if ((notification.sessionId === currentSessionId || notification.type === 'join_session') &&
-                    !document.querySelector(`.notification[data-timestamp="${notification.timestamp}"]`)) {
-                    showNotification(notification);
-                    if (notification.type === 'join_session' && notification.sessionId) {
-                        joinStudySession(notification.sessionId);
-                    }
-                }
-            });
-        }
-    }, (error) => {
-        console.error("Error listening to notifications:", error);
-    });
 }
 // Function to display notifications
 function showNotification(notification) {
@@ -1151,40 +1151,37 @@ function showNotification(notification) {
     notificationDiv.className = 'notification alert alert-info position-fixed bottom-0 end-0 m-3';
     notificationDiv.style.zIndex = '1050';
     notificationDiv.setAttribute('data-timestamp', notification.timestamp || '');
-    notificationDiv.innerHTML = `
-        <p>${notification.message}</p>
-        <button class="btn btn-secondary btn-sm" onclick="dismissNotification(this, '${notification.timestamp}')">Dismiss</button>
-    `;
+    notificationDiv.innerHTML =        ` <p>${notification.message}</p>         <button class="btn btn-secondary btn-sm" onclick="dismissNotification(this, '${notification.timestamp}')">Dismiss</button> `   ;
     document.body.appendChild(notificationDiv);
 
-    // Auto-dismiss after 5 seconds
-    setTimeout(() => {
-        if (notificationDiv.parentNode) {
-            notificationDiv.parentNode.removeChild(notificationDiv);
-        }
-    }, 5000);
+// Auto-dismiss after 5 seconds
+setTimeout(() => {
+    if (notificationDiv.parentNode) {
+        notificationDiv.parentNode.removeChild(notificationDiv);
+    }
+}, 5000);
+
 }
 // Function to dismiss notification and remove it from Firestore
 function dismissNotification(button, timestamp) {
     const user = firebase.auth().currentUser;
     if (!user) return;
 
-    const notificationDiv = button.parentElement;
-    if (notificationDiv.parentNode) {
-        notificationDiv.parentNode.removeChild(notificationDiv);
-    }
-
-    db.collection("users").doc(user.uid).update({
-        notifications: firebase.firestore.FieldValue.arrayRemove(
-            ...getNotification(user.uid, timestamp)
-        )
-    })
-    .catch((error) => {
-        console.error("Error removing notification:", error);
-    });
+const notificationDiv = button.parentElement;
+if (notificationDiv.parentNode) {
+    notificationDiv.parentNode.removeChild(notificationDiv);
 }
 
-// Helper function to get specific notification to remove
+db.collection("users").doc(user.uid).update({
+    notifications: firebase.firestore.FieldValue.arrayRemove(
+        ...getNotification(user.uid, timestamp)
+    )
+})
+.catch((error) => {
+    console.error("Error removing notification:", error);
+});
+
+}// Helper function to get specific notification to remove
 function getNotification(userId, timestamp) {
     return new Promise((resolve) => {
         db.collection("users").doc(userId).get()
@@ -1206,45 +1203,19 @@ function getNotification(userId, timestamp) {
     });
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+    const sendButton = document.getElementById('sendChatButton');
+    if (sendButton) {
+        sendButton.addEventListener('click', sendMessage);
+    }
 
-document.addEventListener('input', function (e) {
-    if (e.target.classList.contains('task-name-input')) {
-        e.target.classList.add('edited'); // visually show it's being edited
+    // Optionally, allow sending with the Enter key
+    const chatInput = document.getElementById('chatMessageInput');
+    if (chatInput) {
+        chatInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
     }
 });
-
-document.addEventListener('blur', function (e) {
-    if (e.target.classList.contains('task-name-input') && e.target.classList.contains('edited')) {
-        const newName = e.target.value.trim();
-        const taskId = e.target.getAttribute('data-task-id');
-        const user = firebase.auth().currentUser;
-
-        if (newName && user && taskId) {
-            db.collection("users").doc(user.uid).collection("tasks").doc(taskId).update({
-                name: newName
-            }).then(() => {
-                e.target.classList.remove('edited');
-
-                // ✅ Trigger success feedback animation
-                e.target.classList.add('feedback-success');
-                setTimeout(() => e.target.classList.remove('feedback-success'), 600);
-
-                const taskFeedback = document.getElementById('taskFeedback');
-                if (taskFeedback) {
-                    taskFeedback.classList.remove('d-none');
-                    taskFeedback.classList.add('show');
-
-                    setTimeout(() => {
-                        taskFeedback.classList.remove('show');
-                        taskFeedback.classList.add('d-none');
-                    }, 2000);
-                }
-
-
-                console.log(`✅ Task "${taskId}" updated to "${newName}"`);
-            }).catch((error) => {
-                console.error("❌ Failed to update task:", error);
-            });
-        }
-    }
-}, true);

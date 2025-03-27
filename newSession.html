@@ -522,28 +522,26 @@
                 const existingSessionId = localStorage.getItem('currentSessionId');
 
                 if (existingSessionId) {
-                    // Check if the session is valid and user is a participant
                     db.collection("studySessions").doc(existingSessionId).get()
                         .then((doc) => {
                             if (doc.exists && doc.data().participants.includes(user.uid)) {
                                 console.log("Joining existing session:", existingSessionId);
-                                joinStudySession(existingSessionId); // This calls listenToSessionChanges
+                                joinStudySession(existingSessionId);
                             } else {
                                 console.log("Invalid session or not a participant. Creating new session.");
                                 localStorage.removeItem('currentSessionId');
-                                createStudySession(); // This also calls listenToSessionChanges
+                                createStudySession();
                             }
                         })
                         .catch((error) => {
                             console.error("Error checking session:", error);
-                            createStudySession(); // Fallback
+                            createStudySession();
                         });
                 } else {
                     console.log("No existing session. Creating new session.");
                     createStudySession();
                 }
 
-                // Ensure notifications are always listened to
                 listenForNotifications();
             } else {
                 console.log("No user. Redirecting to login.");
