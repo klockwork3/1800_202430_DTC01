@@ -627,7 +627,8 @@ db.collection("studySessions").doc(currentSessionId).get()
                 participants: updatedParticipants,
                 leftUsers: firebase.firestore.FieldValue.arrayUnion(user.uid)
             }).then(() => {
-                notifyParticipants(currentSessionId, notification);
+                return notifyParticipants(currentSessionId, notification);
+            }).then(() => {
                 return currentSessionId;
             });
         }
@@ -1272,26 +1273,30 @@ function handleSessionInvite(notification) {
 }
 
 function notifyParticipants(sessionId, notification) {
-    // Find all participants in the session except the user who triggered the notification
-    db.collection("studySessions").doc(sessionId).get()
+    return db.collection("studySessions").doc(sessionId).get()
         .then((doc) => {
             if (doc.exists) {
                 const sessionData = doc.data();
                 const participants = sessionData.participants || [];
-
-                // Add notification to each participant's profile
-                participants.forEach((participantId) => {
-                    if (participantId !== notification.except) {
-                        db.collection("users").doc(participantId).update({
+                
+                // Create an array of promises for all updates
+                const updatePromises = participants
+                    .filter(participantId => participantId !== notification.except)
+                    .map(participantId => {
+                        return db.collection("users").doc(participantId).update({
                             notifications: firebase.firestore.FieldValue.arrayUnion({
                                 type: notification.type,
                                 message: notification.message,
                                 sessionId: sessionId,
                                 timestamp: new Date().toISOString()
                             })
+                        }).catch(err => {
+                            console.error(`Failed to notify ${participantId}:`, err);
                         });
-                    }
-                });
+                    });
+
+                // Wait for all updates to complete
+                return Promise.all(updatePromises);
             }
         })
         .catch((error) => {
