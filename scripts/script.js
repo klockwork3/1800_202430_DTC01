@@ -656,22 +656,43 @@ db.collection("studySessions").doc(currentSessionId).get()
     const user = firebase.auth().currentUser;
     if (!user) return;
 
-// Stop any existing listener
-if (sessionListenerUnsubscribe) {
-    sessionListenerUnsubscribe();
-    sessionListenerUnsubscribe = null;
-}
+    // Stop any existing listener
+    if (sessionListenerUnsubscribe) {
+        sessionListenerUnsubscribe();
+        sessionListenerUnsubscribe = null;
+    }
 
-sessionListenerUnsubscribe = db.collection("studySessions").doc(sessionId)
-    .onSnapshot((doc) => {
-        if (doc.exists) {
-            const sessionData = doc.data();
-            const participants = sessionData.participants || [];
-            if (participants.includes(user.uid)) {
-                console.log('Current session participants:', participants);
-                loadChatMessages(sessionId);
+    sessionListenerUnsubscribe = db.collection("studySessions").doc(sessionId)
+        .onSnapshot((doc) => {
+            if (doc.exists) {
+                const sessionData = doc.data();
+                const participants = sessionData.participants || [];
+                
+                // Update participants list in UI
+                updateParticipantsUI(participants);
+
+                if (participants.includes(user.uid)) {
+                    console.log('Current session participants:', participants);
+                    loadChatMessages(sessionId);
+                } else {
+                    // User is no longer a participant, stop listeners and clear UI
+                    if (sessionListenerUnsubscribe) {
+                        sessionListenerUnsubscribe();
+                        sessionListenerUnsubscribe = null;
+                    }
+                    if (chatListenerUnsubscribe) {
+                        chatListenerUnsubscribe();
+                        chatListenerUnsubscribe = null;
+                    }
+                    const messagesContainer = document.getElementById('chatMessages');
+                    if (messagesContainer) {
+                        messagesContainer.innerHTML = '<p>You are no longer in this session.</p>';
+                    }
+                    localStorage.removeItem('currentSessionId');
+                    console.log(`User ${user.uid} no longer in session ${sessionId}`);
+                }
             } else {
-                // User is no longer a participant, stop listeners and clear UI
+                // Session deleted, clean up
                 if (sessionListenerUnsubscribe) {
                     sessionListenerUnsubscribe();
                     sessionListenerUnsubscribe = null;
@@ -680,31 +701,47 @@ sessionListenerUnsubscribe = db.collection("studySessions").doc(sessionId)
                     chatListenerUnsubscribe();
                     chatListenerUnsubscribe = null;
                 }
-                const messagesContainer = document.getElementById('chatMessages');
-                if (messagesContainer) {
-                    messagesContainer.innerHTML = '<p>You are no longer in this session.</p>';
-                }
                 localStorage.removeItem('currentSessionId');
-                console.log(`User ${user.uid} no longer in session ${sessionId}`);
+                console.log(`Session ${sessionId} does not exist`);
             }
-        } else {
-            // Session deleted, clean up
-            if (sessionListenerUnsubscribe) {
-                sessionListenerUnsubscribe();
-                sessionListenerUnsubscribe = null;
-            }
-            if (chatListenerUnsubscribe) {
-                chatListenerUnsubscribe();
-                chatListenerUnsubscribe = null;
-            }
-            localStorage.removeItem('currentSessionId');
-            console.log(`Session ${sessionId} does not exist`);
-        }
-    }, (error) => {
-        console.error("Error in session listener:", error);
-    });
+        }, (error) => {
+            console.error("Error in session listener:", error);
+        });
+}
+function updateParticipantsUI(participants) {
+    const participantsContainer = document.getElementById('sessionParticipants');
+    const participantsList = document.getElementById('participantsList');
+    if (!participantsContainer || !participantsList) return;
 
-}function sendMessage() {
+    // Clear existing participants
+    participantsContainer.innerHTML = '';
+
+    // Show/hide based on participant count
+    if (participants.length > 1) {
+        participantsList.style.display = 'block'; // Show when >1 participant
+    } else {
+        participantsList.style.display = 'none'; // Hide when 1 or fewer
+        return; // No need to populate if hidden
+    }
+
+    // Fetch and display participant names
+    participants.forEach((participantId) => {
+        db.collection("users").doc(participantId).get()
+            .then((doc) => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    const participantElement = document.createElement('div');
+                    participantElement.classList.add('participant-item');
+                    participantElement.textContent = userData.displayName || 'Anonymous';
+                    participantsContainer.appendChild(participantElement);
+                }
+            })
+            .catch((error) => {
+                console.error("Error fetching participant details:", error);
+            });
+    });
+}
+function sendMessage() {
     const messageInput = document.getElementById('chatMessageInput');
     const message = messageInput.value.trim();
 

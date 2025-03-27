@@ -282,6 +282,22 @@
         .task-item i {
             font-size: 0.75rem;
             color: #6c757d;
+            
+}
+.participants-list {
+    display: none;
+    position: fixed;
+    top: 5%; /* Positioned near the top-right, adjust as needed */
+    left: 2%; /* Slightly offset from the edge */
+    width: 250px; /* Slightly narrower than task-list/chat-list */
+    background-color: #f8f9fa; /* Matches your light gray background */
+    border: 4px solid #ddd; /* Consistent border */
+    border-radius: 20px; /* Rounded corners like others */
+    padding: 15px; /* Slightly less padding for compactness */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    z-index: 1000; /* Ensures it’s above other elements */
+    min-height: 100px; /* Smaller minimum height */
+    max-height: 400px; /* Shorter max height than task/chat lists */
 }
 
     </style>
@@ -303,6 +319,13 @@
 
 
 <body class="my-5 py-5 d-flex flex-column align-items-center">
+    <div id="participantsList" class="participants-list">
+        <h4>Users in Session
+        </h4>
+        <div id="sessionParticipants" class="participants-container"></div>
+    </div>
+
+
     <div class="text-center">
         <h1 class="my-5 fs-2 fw-bold">New Session</h1>
     </div>
