@@ -627,7 +627,7 @@ db.collection("studySessions").doc(currentSessionId).get()
     .then((sessionId) => {
         localStorage.removeItem('currentSessionId');
         console.log('User left the study session');
-
+        window.location.href='main.html';
         // Stop all listeners
         if (sessionListenerUnsubscribe) {
             sessionListenerUnsubscribe();
@@ -847,6 +847,11 @@ function getCurrentSessionId() {
     return sessionId;
 }// Modify the existing DOMContentLoaded listener
 firebase.auth().onAuthStateChanged((user) => {
+
+    if (!window.location.pathname.includes('newsession.html')) {
+        return; // Exit if not on new session page
+    }
+
     if (user) {
         updateUserStatus(true);
 
@@ -1042,30 +1047,7 @@ db.collection("users").doc(user.uid).set({
     console.error("Error updating user status:", error);
 });
 
-}firebase.auth().onAuthStateChanged((user) => {
-    if (user) {
-        updateUserStatus(true);
-        const sessionId = localStorage.getItem('currentSessionId');
-        if (sessionId) {
-            db.collection("studySessions").doc(sessionId).get()
-                .then((doc) => {
-                    if (doc.exists && doc.data().participants.includes(user.uid)) {
-                        joinStudySession(sessionId);
-                    } else {
-                        createStudySession();
-                    }
-                })
-                .catch((error) => {
-                    console.error("Error checking session:", error);
-                    createStudySession();
-                });
-        } else {
-            createStudySession();
-        }
-    } else {
-        window.location.href = 'login.html';
-    }
-});// Handle logout to set user offline
+}// Handle logout to set user offline
 document.addEventListener("DOMContentLoaded", function () {
     const logoutButton = document.getElementById("logoutButton");
     if (logoutButton) {
