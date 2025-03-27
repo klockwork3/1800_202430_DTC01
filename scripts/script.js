@@ -473,6 +473,20 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
     });
+        // Toggle all task details
+        const toggleAllBtn = document.getElementById('toggleAllDetailsButton');
+        let showingAll = false;
+    
+        if (toggleAllBtn) {
+            toggleAllBtn.addEventListener('click', function () {
+                const details = document.querySelectorAll('.task-details');
+                showingAll = !showingAll;
+                details.forEach(detail => {
+                    detail.style.display = showingAll ? 'block' : 'none';
+                });
+                toggleAllBtn.textContent = showingAll ? 'Hide All Details' : 'Show All Details';
+            });
+        }
 });
 
 //************************************************************************************************ */
