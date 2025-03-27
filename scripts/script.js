@@ -900,93 +900,67 @@ function toggleChatList() {
 justJoined = false
 // Function to add users to the session
 function inviteUserToSession(invitedUserId) {
-    const currentSessionId = localStorage.getItem('currentSessionId');
     const currentUser = firebase.auth().currentUser;
+    const currentSessionId = localStorage.getItem('currentSessionId');
 
-if (!currentUser || !currentSessionId) {
-    console.error("No active session or user not logged in");
-    return;
+    if (!currentUser || !currentSessionId) {
+        console.error("No active session or user not logged in");
+        return;
+    }
+
+    // Transaction to add user to session
+    db.runTransaction((transaction) => {
+        const currentSessionRef = db.collection("studySessions").doc(currentSessionId);
+        const invitedUserRef = db.collection("users").doc(invitedUserId);
+
+        return transaction.get(currentSessionRef).then((sessionDoc) => {
+            if (!sessionDoc.exists) {
+                throw new Error("Session does not exist");
+            }
+
+            const sessionData = sessionDoc.data();
+            const participants = sessionData.participants || [];
+
+            // If user is already in the session, no need to add again
+            if (participants.includes(invitedUserId)) {
+                return;
+            }
+
+            // Remove user from any existing active session
+            transaction.update(invitedUserRef, {
+                activeSessionId: firebase.firestore.FieldValue.delete()
+            });
+
+            // Add user to the new session
+            transaction.update(currentSessionRef, {
+                participants: firebase.firestore.FieldValue.arrayUnion(invitedUserId)
+            });
+
+            // Set the new session as active for the invited user
+            transaction.update(invitedUserRef, {
+                activeSessionId: currentSessionId
+            });
+
+            return currentSessionId;
+        });
+    })
+    .then((sessionId) => {
+        if (sessionId) {
+            // Create session invite notification
+            return createSessionNotification(invitedUserId, 'session_invite');
+        }
+    })
+    .then(() => {
+        alert(`User invited successfully!`);
+        toggleUserList();
+    })
+    .catch((error) => {
+        console.error("Error inviting user:", error);
+        alert("Failed to invite user. Please try again.");
+    });
 }
 
-// Transaction to ensure atomic updates and prevent race conditions
-db.runTransaction((transaction) => {
-    const currentSessionRef = db.collection("studySessions").doc(currentSessionId);
-    const invitedUserRef = db.collection("users").doc(invitedUserId);
-
-    return transaction.get(currentSessionRef).then((sessionDoc) => {
-        if (!sessionDoc.exists) {
-            throw new Error("Session does not exist");
-        }
-
-        const sessionData = sessionDoc.data();
-        const participants = sessionData.participants || [];
-
-        // If user is already in the session, no need to add again
-        if (participants.includes(invitedUserId)) {
-            return;
-        }
-
-        // First, remove user from any existing active session
-        transaction.update(invitedUserRef, {
-            activeSessionId: firebase.firestore.FieldValue.delete()
-        });
-
-        // Add user to the new session
-        transaction.update(currentSessionRef, {
-            participants: firebase.firestore.FieldValue.arrayUnion(invitedUserId)
-        });
-
-        // Set the new session as active for the invited user
-        transaction.update(invitedUserRef, {
-            activeSessionId: currentSessionId
-        });
-
-        return currentSessionId;
-    });
-})
-.then((sessionId) => {
-    if (sessionId) {
-        // Prepare and send notifications
-        return db.collection("users").doc(invitedUserId).get()
-            .then((userDoc) => {
-                const invitedUserName = userDoc.exists ? userDoc.data().displayName || 'Anonymous' : 'Anonymous';
-                const timestamp = new Date().toISOString();
-
-                // Notification for other participants
-                const joinNotification = {
-                    type: 'user_joined',
-                    message: `${invitedUserName} has joined the session`,
-                    sessionId: sessionId,
-                    timestamp: timestamp,
-                    except: invitedUserId
-                };
-                notifyParticipants(sessionId, joinNotification);
-
-                // Notification for the invited user
-                const inviteNotification = {
-                    type: 'join_session',
-                    message: `You have been invited to a study session!`,
-                    sessionId: sessionId,
-                    timestamp: timestamp,
-                    except: currentUser.uid
-                };
-
-                return db.collection("users").doc(invitedUserId).update({
-                    notifications: firebase.firestore.FieldValue.arrayUnion(inviteNotification)
-                });
-            });
-    }
-})
-.then(() => {
-    alert(`User invited successfully!`);
-    toggleUserList();
-})
-.catch((error) => {
-    console.error("Error inviting user:", error);
-    alert("Failed to invite user. Please try again.");
-});
-
-}function toggleUserList() {
+function toggleUserList() {
     const userList = document.getElementById('userList');
     userList.classList.toggle('active');
     if (userList.classList.contains('active')) {
@@ -1064,85 +1038,72 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
     }
-});function notifyParticipants(sessionId, notification) {
-    db.collection("studySessions").doc(sessionId).get()
-        .then((doc) => {
-            if (doc.exists) {
-                const sessionData = doc.data();
-                const participants = sessionData.participants || [];
-
-            // Send notification to all participants except the one specified in notification.except
-            participants.forEach((participantId) => {
-                if (participantId !== notification.except) {
-                    db.collection("users").doc(participantId).update({
-                        notifications: firebase.firestore.FieldValue.arrayUnion(notification)
-                    })
-                    .catch((error) => {
-                        console.error("Error sending notification to user:", participantId, error);
-                    });
-                }
-            });
-        }
-    })
-    .catch((error) => {
-        console.error("Error fetching session for notification:", error);
-    });
-
-}
+});
 // Listen for notifications
 function listenForNotifications() {
     const user = firebase.auth().currentUser;
     if (!user) return;
 
-db.collection("users").doc(user.uid).onSnapshot((doc) => {
-    if (doc.exists) {
-        const userData = doc.data();
-        const notifications = userData.notifications || [];
+    db.collection("users").doc(user.uid).onSnapshot((doc) => {
+        if (doc.exists) {
+            const userData = doc.data();
+            const notifications = userData.notifications || [];
 
-        notifications.forEach((notification) => {
-            // Focus on join session notifications
-            if (notification.type === 'join_session' && notification.sessionId) {
-                // Remove any existing active session first
-                db.collection("users").doc(user.uid).update({
-                    activeSessionId: firebase.firestore.FieldValue.delete()
-                })
-                .then(() => {
-                    // Join the new session
-                    return joinStudySession(notification.sessionId);
-                })
-                .then(() => {
-                    // Remove the notification after processing
-                    return db.collection("users").doc(user.uid).update({
-                        notifications: firebase.firestore.FieldValue.arrayRemove(notification)
-                    });
-                })
-                .catch((error) => {
-                    console.error("Error processing join session notification:", error);
-                });
+            // Only show the most recent notification
+            if (notifications.length > 0) {
+                const mostRecentNotification = notifications[notifications.length - 1];
+                
+                // Only show notification if it's a recent event (within last 30 seconds)
+                const notificationTime = new Date(mostRecentNotification.timestamp);
+                const now = new Date();
+                const timeDiff = (now - notificationTime) / 1000; // difference in seconds
+
+                if (timeDiff < 30) {
+                    showNotification(mostRecentNotification);
+
+                    // Handle specific notification types
+                    if (mostRecentNotification.type === 'session_invite' && mostRecentNotification.sessionId) {
+                        handleSessionInvite(mostRecentNotification);
+                    }
+                }
             }
-        });
-    }
-}, (error) => {
-    console.error("Error listening to notifications:", error);
-});
-
+        }
+    }, (error) => {
+        console.error("Error listening to notifications:", error);
+    });
 }
+
 // Function to display notifications
 function showNotification(notification) {
-    const notificationDiv = document.createElement('div');
-    notificationDiv.className = 'notification alert alert-info position-fixed bottom-0 end-0 m-3';
-    notificationDiv.style.zIndex = '1050';
-    notificationDiv.setAttribute('data-timestamp', notification.timestamp || '');
-    notificationDiv.innerHTML =        ` <p>${notification.message}</p>         <button class="btn btn-secondary btn-sm" onclick="dismissNotification(this, '${notification.timestamp}')">Dismiss</button> `   ;
-    document.body.appendChild(notificationDiv);
-
-// Auto-dismiss after 5 seconds
-setTimeout(() => {
-    if (notificationDiv.parentNode) {
-        notificationDiv.parentNode.removeChild(notificationDiv);
+    // Create a toast-style notification
+    const notificationContainer = document.getElementById('notificationContainer');
+    if (!notificationContainer) {
+        const container = document.createElement('div');
+        container.id = 'notificationContainer';
+        container.className = 'notification-container position-fixed top-0 end-0 p-3';
+        container.style.zIndex = '1050';
+        document.body.appendChild(container);
     }
-}, 5000);
 
+    const notificationElement = document.createElement('div');
+    notificationElement.className = 'toast show';
+    notificationElement.innerHTML = `
+        <div class="toast-header">
+            <strong class="me-auto">CheckMate Notification</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body">
+            ${notification.message}
+        </div>
+    `;
+
+    // Automatically remove after 5 seconds
+    const toastContainer = document.getElementById('notificationContainer');
+    toastContainer.appendChild(notificationElement);
+
+    setTimeout(() => {
+        notificationElement.remove();
+    }, 5000);
 }
 // Function to dismiss notification and remove it from Firestore
 function dismissNotification(button, timestamp) {
@@ -1201,3 +1162,89 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+//*********************************************************************************** */
+//Notification system
+function createSessionNotification(invitedUserId, notificationType) {
+    const currentUser = firebase.auth().currentUser;
+    const currentSessionId = localStorage.getItem('currentSessionId');
+
+    if (!currentUser || !currentSessionId) {
+        console.error("No active session or user not logged in");
+        return Promise.reject("Invalid session");
+    }
+
+    // Prepare notification data
+    const notification = {
+        type: notificationType,
+        sessionId: currentSessionId,
+        senderId: currentUser.uid,
+        senderName: currentUser.displayName || 'Anonymous',
+        timestamp: new Date().toISOString()
+    };
+
+    // Customize message based on notification type
+    switch(notificationType) {
+        case 'session_invite':
+            notification.message = `You've been summoned for Co-op by ${notification.senderName}!`;
+            break;
+        case 'user_joined':
+            notification.message = `${notification.senderName} has joined the study session`;
+            break;
+        case 'user_left':
+            notification.message = `${notification.senderName} has left the study session`;
+            break;
+        default:
+            notification.message = 'New notification';
+    }
+
+    // Add notification to the invited user's profile
+    return db.collection("users").doc(invitedUserId).update({
+        notifications: firebase.firestore.FieldValue.arrayUnion(notification)
+    });
+}
+
+
+
+
+function handleSessionInvite(notification) {
+    // Optional: Add a confirmation dialog or automatic join
+    joinStudySession(notification.sessionId)
+        .then(() => {
+            // Remove the notification after processing
+            return db.collection("users").doc(firebase.auth().currentUser.uid).update({
+                notifications: firebase.firestore.FieldValue.arrayRemove(notification)
+            });
+        })
+        .catch((error) => {
+            console.error("Error processing session invite:", error);
+        });
+}
+
+function notifyParticipants(sessionId, notification) {
+    // Find all participants in the session except the user who triggered the notification
+    db.collection("studySessions").doc(sessionId).get()
+        .then((doc) => {
+            if (doc.exists) {
+                const sessionData = doc.data();
+                const participants = sessionData.participants || [];
+
+                // Add notification to each participant's profile
+                participants.forEach((participantId) => {
+                    if (participantId !== notification.except) {
+                        db.collection("users").doc(participantId).update({
+                            notifications: firebase.firestore.FieldValue.arrayUnion({
+                                type: notification.type,
+                                message: notification.message,
+                                sessionId: sessionId,
+                                timestamp: new Date().toISOString()
+                            })
+                        });
+                    }
+                });
+            }
+        })
+        .catch((error) => {
+            console.error("Error notifying participants:", error);
+        });
+}
+
