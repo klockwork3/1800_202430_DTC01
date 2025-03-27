@@ -19,6 +19,14 @@
             left: 67% !important;
             visibility: hidden;
         }
+        .custom-start-chat {
+            left: 67% !important;
+            visibility: hidden;
+        }
+        .custom-start-users {
+            left: 67% !important;
+            visibility: hidden;
+        }
     </style>
 
     <!-------------------------------------------------------->
@@ -45,7 +53,7 @@
     <div class="container d-flex justify-content-center align-items-center vh-100">
         <div class="card p-3 shadow-lg" style="width: 800px;">
 
-            <div class="text-start mb-3">
+            <div class="text-start">
                 <button class="btn btn-outline-primary" onclick="history.back()">
                     ← Back
                 </button>
@@ -53,7 +61,7 @@
             
             <div class="text-center">
                 <img src="images/profilepic.jpg" class="rounded-circle mb-2 img-fluid"
-                    style="width: 300px; height: 300px; object-fit: cover;" alt="Profile Picture">
+                    style="width: 240px; height: 240px; object-fit: cover;" alt="Profile Picture">
                 <h4 class="fw-bold mb-2" id="displayName">Username</h4>
             </div>
 
@@ -74,7 +82,7 @@
                 </div>
             </div>
 
-            <div class="mt-2 text-center">
+            <div class="mt-2 mb-5 text-center">
                 <a href="settings.html">
                     <button id="settingsButton" class="btn btn-outline-secondary w-100">Edit Profile</button>
                 </a>
