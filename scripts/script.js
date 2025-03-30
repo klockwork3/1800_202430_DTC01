@@ -517,8 +517,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function addTaskToUI(taskId, taskData, isCompleted) {
     let taskHTML = `
-        <div class="task-item" data-task-id="${taskId}" style="border-bottom: 1px solid #ccc; padding: 8px;">
-            <div class="d-flex align-items-center gap-2 mb-1">
+        <div class="task-item d-flex justify-content-between align-items-center" data-task-id="${taskId}" style="border-bottom: 1px solid #ccc; padding: 8px;">
+            <div class="d-flex align-items-center gap-2 flex-grow-1">
                 <input type="checkbox" class="form-check-input" onclick="removeTask(this)" ${isCompleted ? 'checked' : ''}>
                 <input 
                     type="text" 
@@ -529,16 +529,28 @@ function addTaskToUI(taskId, taskData, isCompleted) {
                     ${isCompleted ? "readonly" : ""}
                 />
             </div>
-            <div class="task-details" style="display: none;">
-                <p class="text-muted mb-1"><strong>Deadline:</strong> ${taskData.deadline || "None"}</p>
-                <p class="text-muted mb-0"><strong>Difficulty:</strong> ${"⭐".repeat(taskData.value || 1)}</p>
-            </div>
+            <button class="btn btn-sm btn-outline-danger ms-2" onclick="deleteTask('${taskId}', ${isCompleted})">✖️</button>
         </div>
     `;
+
     document.getElementById('tasks').insertAdjacentHTML('afterbegin', taskHTML);
 }
 
 
+function deleteTask(taskId, isCompleted) {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    const collectionName = isCompleted ? "taskHistory" : "tasks";
+    db.collection("users").doc(user.uid).collection(collectionName).doc(taskId).delete()
+        .then(() => {
+            const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+            if (taskElement) taskElement.remove();
+        })
+        .catch((error) => {
+            console.error("Error deleting task:", error);
+        });
+}
 
 
 
