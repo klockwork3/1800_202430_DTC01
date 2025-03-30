@@ -1,9 +1,6 @@
 let sessionListenerUnsubscribe = null;
 let chatListenerUnsubscribe = null;
-// newSessionButton main.html
-function displayLeaderboardTable() {
-    console.log("Here is the leaderboard table, what's your rank"); // in future sprints, these will do something
-}
+
 
 
 const displayLeaderboard = document.getElementById('displayLeaderboard');
@@ -39,28 +36,6 @@ if (settingsButton) {
 }
 
 
-// logoutButton profile.html
-document.addEventListener("DOMContentLoaded", function () {
-    const logoutButton = document.getElementById("logoutButton");
-
-    if (logoutButton) {
-        logoutButton.addEventListener("click", function () {
-            firebase.auth().signOut().then(() => {
-                console.log("User signed out.");
-                window.location.href = "login.html"; // Redirect to login page
-            }).catch((error) => {
-                console.error("Error signing out:", error);
-            });
-        });
-    }
-});
-
-
-
-// task in navbar
-function showTaskList() {
-    console.log('Here is your task list!'); // in future sprints, these will do something
-}
 
 const taskListNav = document.getElementById('taskListNav');
 if (taskListNav) {
@@ -135,172 +110,6 @@ function getSelectedStarValue() {
 
 }
 
-// moving completed tasks to history
-function removeTask(checkbox) {
-    console.log("removeTask triggered with checkbox:", checkbox);
-
-    const taskItem = checkbox.parentElement.parentElement;
-    console.log("taskItem:", taskItem);
-
-    const taskId = taskItem.getAttribute('data-task-id');
-    console.log("taskId:", taskId);
-
-    const user = firebase.auth().currentUser;
-    console.log("user:", user ? user.uid : "No user");
-
-    if (!user || !taskId) {
-        console.error("No user or task ID available - user:", user, "taskId:", taskId);
-        return;
-    }
-
-    if (checkbox.checked) {
-        // ✅ MARK AS COMPLETE
-        console.log(`Attempting to complete task ${taskId} for user ${user.uid}`);
-        
-        db.collection("users").doc(user.uid).collection("tasks").doc(taskId).get()
-            .then((doc) => {
-                if (!doc.exists) {
-                    console.error(`Task ${taskId} does not exist`);
-                    return;
-                }
-
-                const taskData = doc.data();
-                console.log("Task data:", taskData);
-
-                const completedTask = {
-                    ...taskData,
-                    completed: true,
-                    completedAt: firebase.firestore.FieldValue.serverTimestamp()
-                };
-
-                return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).set(completedTask)
-                    .then(() => {
-                        console.log(`Task ${taskId} moved to history`);
-                        
-                        // First, get current user data to check level
-                        return db.collection("users").doc(user.uid).get()
-                            .then((userDoc) => {
-                                if (!userDoc.exists) {
-                                    console.error("User document not found");
-                                    return;
-                                }
-                                
-                                const userData = userDoc.data();
-                                const pointsToAdd = taskData.value || 1;
-                                const currentPoints = (userData.StatPoints || 0);
-                                const newPoints = currentPoints + pointsToAdd;
-                                const currentLevel = userData.Level || 1;
-                                
-                                // Calculate new level based on new points total
-                                const levelInfo = calculateLevel(newPoints);
-                                
-                                // Prepare update object
-                                const updateData = {
-                                    StatPoints: firebase.firestore.FieldValue.increment(pointsToAdd)
-                                };
-                                
-                                // If level increased, update Level field
-                                if (levelInfo.currentLevel > currentLevel) {
-                                    updateData.Level = levelInfo.currentLevel;
-                                    console.log(`LEVEL UP! User reached level ${levelInfo.currentLevel}`);
-                                }
-                                
-                                // Update user document with points and possibly level
-                                return db.collection("users").doc(user.uid).update(updateData);
-                            });
-                    })
-                    .then(() => {
-                        console.log(`StatPoints and Level updated`);
-                        return db.collection("users").doc(user.uid).collection("tasks").doc(taskId).delete();
-                    })
-                    .then(() => {
-                        console.log(`Task ${taskId} deleted from active tasks`);
-                        taskItem.remove();
-                        return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).get();
-                    })
-                    .then((doc) => {
-                        if (doc.exists) {
-                            console.log("Re-fetched task from history:", doc.data());
-                            addTaskToUI(taskId, doc.data(), true);
-                        }
-                    });
-            })
-            .catch((error) => {
-                console.error("Error in task completion process:", error);
-            });
-    } else {
-        // ✅ MOVE BACK TO ACTIVE TASKS
-        console.log(`Attempting to un-complete task ${taskId}`);
-        
-        db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).get()
-            .then((doc) => {
-                if (!doc.exists) {
-                    console.error(`Task ${taskId} not found in history`);
-                    return;
-                }
-
-                const taskData = doc.data();
-                const activeTask = {
-                    ...taskData,
-                    completed: false,
-                    completedAt: null
-                };
-
-                return db.collection("users").doc(user.uid).collection("tasks").doc(taskId).set(activeTask)
-                    .then(() => {
-                        console.log(`Task ${taskId} moved back to active tasks`);
-                        
-                        // Get current user data to check level
-                        return db.collection("users").doc(user.uid).get()
-                            .then((userDoc) => {
-                                if (!userDoc.exists) {
-                                    console.error("User document not found");
-                                    return;
-                                }
-                                
-                                const userData = userDoc.data();
-                                const pointsToSubtract = taskData.value || 1;
-                                const currentPoints = (userData.StatPoints || 0);
-                                const newPoints = currentPoints - pointsToSubtract;
-                                const currentLevel = userData.Level || 1;
-                                
-                                // Calculate new level based on reduced points
-                                const levelInfo = calculateLevel(newPoints);
-                                
-                                // Prepare update object
-                                const updateData = {
-                                    StatPoints: firebase.firestore.FieldValue.increment(-pointsToSubtract)
-                                };
-                                
-                                // If level decreased, update Level field
-                                if (levelInfo.currentLevel < currentLevel) {
-                                    updateData.Level = levelInfo.currentLevel;
-                                    console.log(`LEVEL DOWN! User decreased to level ${levelInfo.currentLevel}`);
-                                }
-                                
-                                // Update user document with adjusted points and possibly level
-                                return db.collection("users").doc(user.uid).update(updateData);
-                            });
-                    })
-                    .then(() => {
-                        console.log(`StatPoints and Level updated`);
-                        return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).delete();
-                    })
-                    .then(() => {
-                        console.log(`Task ${taskId} removed from history`);
-                        const tasksContainer = document.getElementById('tasks');
-                        const existingTask = tasksContainer.querySelector(`[data-task-id="${taskId}"]`);
-                        if (existingTask) existingTask.remove();
-                        addTaskToUI(taskId, activeTask, false);
-                    });
-            })
-            .catch((error) => {
-                console.error("Error moving task back to active:", error);
-            });
-    }
-}
-
-
 
 document.addEventListener("DOMContentLoaded", function () {
     const modal = document.getElementById("exampleModal");
@@ -324,6 +133,21 @@ document.addEventListener("DOMContentLoaded", function () {
             modal.style.display = "none";
             document.getElementById('taskForm').reset();
         }
+
+    // logoutButton profile.html
+    const logoutButton = document.getElementById("logoutButton");
+
+    if (logoutButton) {
+        logoutButton.addEventListener("click", function () {
+            firebase.auth().signOut().then(() => {
+                console.log("User signed out.");
+                window.location.href = "login.html"; // Redirect to login page
+            }).catch((error) => {
+                console.error("Error signing out:", error);
+            });
+        });
+    }
+    
     });
 
 
@@ -1285,24 +1109,7 @@ db.collection("users").doc(user.uid).set({
     console.error("Error updating user status:", error);
 });
 
-}// Handle logout to set user offline
-document.addEventListener("DOMContentLoaded", function () {
-    const logoutButton = document.getElementById("logoutButton");
-    if (logoutButton) {
-        logoutButton.addEventListener("click", function () {
-            const user = firebase.auth().currentUser;
-            if (user) {
-                updateUserStatus(false); // Set user offline before signing out
-            }
-            firebase.auth().signOut().then(() => {
-                console.log("User signed out.");
-                window.location.href = "login.html";
-            }).catch((error) => {
-                console.error("Error signing out:", error);
-            });
-        });
-    }
-});
+}
 // Listen for notifications
 function listenForNotifications() {
     const user = firebase.auth().currentUser;
