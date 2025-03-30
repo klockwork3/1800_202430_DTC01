@@ -344,7 +344,8 @@ function addTaskToUI(taskId, taskData, isCompleted) {
     let taskHTML = `
         <div class="task-item" data-task-id="${taskId}" style="border-bottom: 1px solid #ccc; padding: 8px;">
             <div class="d-flex justify-content-between align-items-center mb-1">
-                <div class="d-flex align-items-center gap-2 flex-grow-1">
+            <div class="d-flex align-items-center gap-2 flex-grow-1">
+                <span class="drag-handle" style="cursor: grab;">≡</span>
                     <input type="checkbox" class="form-check-input" onclick="removeTask(this)" ${isCompleted ? 'checked' : ''}>
                     <textarea
                         class="form-control form-control-sm task-name-input ${isCompleted ? 'completed-task' : ''}" 
@@ -1303,7 +1304,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (tasksContainer) {
         new Sortable(tasksContainer, {
             animation: 150,
-            handle: '.task-name-input', // Drag by task name area
+            handle: '.drag-handle',
             onEnd: function (evt) {
                 const taskItems = [...tasksContainer.querySelectorAll('.task-item')];
                 const user = firebase.auth().currentUser;

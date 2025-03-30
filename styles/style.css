@@ -20,4 +20,10 @@
     display: inline-block;
     min-width: 80px;
   }
-  
+
+.drag-handle {
+    font-size: 18px;
+    color: #999;
+    user-select: none;
+    padding-right: 6px;
+}
