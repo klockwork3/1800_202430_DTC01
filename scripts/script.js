@@ -728,26 +728,55 @@ function updateParticipantsUI(participants) {
     const participantsList = document.getElementById('participantsList');
     if (!participantsContainer || !participantsList) return;
 
-    // Clear existing participants
     participantsContainer.innerHTML = '';
 
     // Show/hide based on participant count
     if (participants.length > 1) {
-        participantsList.style.display = 'block'; // Show when >1 participant
+        participantsList.style.display = 'block'; 
     } else {
-        participantsList.style.display = 'none'; // Hide when 1 or fewer
-        return; // No need to populate if hidden
+        participantsList.style.display = 'none';
+        return; 
     }
 
-    // Fetch and display participant names
+    // Fetch and display participant names, level, and points
     participants.forEach((participantId) => {
         db.collection("users").doc(participantId).get()
             .then((doc) => {
                 if (doc.exists) {
                     const userData = doc.data();
+                    const userLevel = userData.Level || 0;
+                    const userStatPoints = userData.StatPoints || 0;
+                    const displayName = userData.displayName || 'Anonymous';
+
                     const participantElement = document.createElement('div');
                     participantElement.classList.add('participant-item');
-                    participantElement.textContent = userData.displayName || 'Anonymous';
+
+                    const content = document.createElement('div');
+                    content.style.display = 'flex';
+                    content.style.gap = '10px'; // Space between columns
+                    // Name column
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = displayName;
+                    nameSpan.style.minWidth = '100px';
+                    nameSpan.style.textAlign = 'left';
+
+                    // Level column
+                    const levelSpan = document.createElement('span');
+                    levelSpan.textContent = `Level: ${userLevel}`;
+                    levelSpan.style.minWidth = '70px'; // Fixed width for level column
+
+                    // Points column
+                    const pointsSpan = document.createElement('span');
+                    pointsSpan.textContent = `Points: ${userStatPoints}`;
+                    pointsSpan.style.minWidth = '100px'; // Fixed width for points column
+
+                    // Append spans to content
+                    content.appendChild(nameSpan);
+                    content.appendChild(levelSpan);
+                    content.appendChild(pointsSpan);
+
+                    // Append content to participant element
+                    participantElement.appendChild(content);
                     participantsContainer.appendChild(participantElement);
                 }
             })
