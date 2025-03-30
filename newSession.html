@@ -285,19 +285,20 @@
             
 }
 .participants-list {
-    display: none;
-    position: fixed;
-    top: 5%; /* Positioned near the top-right, adjust as needed */
-    left: 2%; /* Slightly offset from the edge */
-    width: 300px; /* Slightly narrower than task-list/chat-list */
-    background-color: #f8f9fa; /* Matches your light gray background */
-    border: 4px solid #ddd; /* Consistent border */
-    border-radius: 20px; /* Rounded corners like others */
-    padding: 15px; /* Slightly less padding for compactness */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-    z-index: 1000; /* Ensures it’s above other elements */
-    min-height: 100px; /* Smaller minimum height */
-    max-height: 400px; /* Shorter max height than task/chat lists */
+    display: block;
+    background-color: #fff;
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+    padding: 20px;
+    border-radius: 1rem;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.participants-container {
+  max-height: 200px;
+  overflow-y: auto;
+  padding-left: 1rem;
 }
 
     </style>
@@ -319,10 +320,6 @@
 
 
 <body class="bg-light py-4">
-    <div id="participantsList" class="participants-list">
-        <h4>Users in Session</h4>
-        <div id="sessionParticipants" class="participants-container"></div>
-      </div>
       
     <div class="container d-flex flex-column align-items-center" style="max-width: 600px;">
 
@@ -340,13 +337,26 @@
     
         <!-- Stopwatch Card -->
         <div id="stopwatchContainer" style="display: none; width: 100%;">
-          <div class="card shadow p-4 mb-4">
+            <div class="card shadow p-4 mb-4 rounded-4">
             <div class="card-body text-center">
-              <p class="fs-5 fw-medium mb-1">Session Started: <span id="session" class="fw-semibold">Not started</span></p>
-              <div id="display" class="fs-4 fw-bold mb-3">Time Elapsed: 00:00:00</div>
+                <h5 class="card-title fw-bold mb-3">Time Elapsed</h5>
+                <p class="fs-5 fw-medium mb-1">Session Started: <span id="session" class="fw-semibold">Not started</span></p>
+                <div id="display" class="fs-4 fw-bold">00:00:00</div>
             </div>
-          </div>
+            </div>
         </div>
+        
+        <!-- Users in Session Box -->
+        <div id="participantsList" class="card shadow p-4 mb-5 rounded-4 w-100" style="display: none;">
+            <div class="card-body">
+            <h5 class="card-title fw-bold mb-3 text-center">Users in Session</h5>
+            <div id="sessionParticipants" class="participants-container ps-3">
+                <p class="text-muted">(No participants yet)</p>
+            </div>
+            </div>
+        </div>
+  
+  
     
         <!-- Stop Session Button -->
         <div class="text-center mb-5">
