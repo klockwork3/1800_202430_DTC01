@@ -701,14 +701,21 @@ db.collection("studySessions").doc(currentSessionId).get()
         sessionListenerUnsubscribe = null;
     }
 
+    let participantsCleanup = null;
+
     sessionListenerUnsubscribe = db.collection("studySessions").doc(sessionId)
         .onSnapshot((doc) => {
             if (doc.exists) {
                 const sessionData = doc.data();
                 const participants = sessionData.participants || [];
                 
-                // Update participants list in UI
-                updateParticipantsUI(participants);
+                // Clean up previous participant listeners if they exist
+                if (participantsCleanup) {
+                    participantsCleanup();
+                }
+
+                // Update participants list in UI with real-time listeners
+                participantsCleanup = updateParticipantsUI(participants);
 
                 if (participants.includes(user.uid)) {
                     console.log('Current session participants:', participants);
@@ -740,6 +747,9 @@ db.collection("studySessions").doc(currentSessionId).get()
                     chatListenerUnsubscribe();
                     chatListenerUnsubscribe = null;
                 }
+                if (participantsCleanup) {
+                    participantsCleanup();
+                }
                 localStorage.removeItem('currentSessionId');
                 console.log(`Session ${sessionId} does not exist`);
             }
@@ -756,58 +766,66 @@ function updateParticipantsUI(participants) {
 
     // Show/hide based on participant count
     if (participants.length > 1) {
-        participantsList.style.display = 'block'; 
+        participantsList.style.display = 'block';
     } else {
         participantsList.style.display = 'none';
-        return; 
+        return;
     }
 
-    // Fetch and display participant names, level, and points
+    // Map to store unsubscribe functions for each participant's listener
+    const unsubscribeMap = new Map();
+
+    // Real-time listener for each participant
     participants.forEach((participantId) => {
-        db.collection("users").doc(participantId).get()
-            .then((doc) => {
+        const unsubscribe = db.collection("users").doc(participantId)
+            .onSnapshot((doc) => {
                 if (doc.exists) {
                     const userData = doc.data();
                     const userLevel = userData.Level || 0;
                     const userStatPoints = userData.StatPoints || 0;
                     const displayName = userData.displayName || 'Anonymous';
 
-                    const participantElement = document.createElement('div');
-                    participantElement.classList.add('participant-item');
+                    // Check if participant element already exists
+                    let participantElement = participantsContainer.querySelector(`[data-participant-id="${participantId}"]`);
+                    if (!participantElement) {
+                        participantElement = document.createElement('div');
+                        participantElement.classList.add('participant-item');
+                        participantElement.setAttribute('data-participant-id', participantId);
+                        participantsContainer.appendChild(participantElement);
+                    }
 
-                    const content = document.createElement('div');
-                    content.style.display = 'flex';
-                    content.style.gap = '10px'; // Space between columns
-                    // Name column
-                    const nameSpan = document.createElement('span');
-                    nameSpan.textContent = displayName;
-                    nameSpan.style.minWidth = '100px';
-                    nameSpan.style.textAlign = 'left';
-
-                    // Level column
-                    const levelSpan = document.createElement('span');
-                    levelSpan.textContent = `Level: ${userLevel}`;
-                    levelSpan.style.minWidth = '70px'; // Fixed width for level column
-
-                    // Points column
-                    const pointsSpan = document.createElement('span');
-                    pointsSpan.textContent = `Points: ${userStatPoints}`;
-                    pointsSpan.style.minWidth = '100px'; // Fixed width for points column
-
-                    // Append spans to content
-                    content.appendChild(nameSpan);
-                    content.appendChild(levelSpan);
-                    content.appendChild(pointsSpan);
-
-                    // Append content to participant element
-                    participantElement.appendChild(content);
-                    participantsContainer.appendChild(participantElement);
+                    // Update content with flexbox layout
+                    participantElement.innerHTML = `
+                        <div style="display: flex; gap: 10px;">
+                            <span style="min-width: 100px; text-align: left;">${displayName}</span>
+                            <span style="min-width: 70px;">Level: ${userLevel}</span>
+                            <span style="min-width: 100px;">Points: ${userStatPoints}</span>
+                        </div>
+                    `;
+                } else {
+                    // Remove participant if they no longer exist
+                    const element = participantsContainer.querySelector(`[data-participant-id="${participantId}"]`);
+                    if (element) element.remove();
                 }
-            })
-            .catch((error) => {
-                console.error("Error fetching participant details:", error);
+            }, (error) => {
+                console.error(`Error listening to participant ${participantId}:`, error);
             });
+
+        // Store unsubscribe function
+        unsubscribeMap.set(participantId, unsubscribe);
     });
+
+    // Clean up listeners when participants change or page unloads
+    const cleanupListeners = () => {
+        unsubscribeMap.forEach((unsubscribe) => unsubscribe());
+        unsubscribeMap.clear();
+    };
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', cleanupListeners);
+
+    // Return cleanup function in case participants change
+    return cleanupListeners;
 }
 function sendMessage() {
     const messageInput = document.getElementById('chatMessageInput');
