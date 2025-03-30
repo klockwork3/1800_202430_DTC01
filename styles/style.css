@@ -41,7 +41,8 @@ body {
     background-image: url('../images/backgroundDarkTrees.png');
     background-size: cover;
     background-position: center;
-    background-repeat: no-repeat;
+    background-repeat: repeat-y;
+    min-height: 100%;
 }
 
 
@@ -63,6 +64,6 @@ body {
 .card {
     max-width: 600px;
     /* Limit overall card size */
-    margin: auto;
+    /* margin: auto; */
 
 }
