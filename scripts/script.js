@@ -1131,7 +1131,13 @@ function inviteUserToSession(invitedUserId) {
         }
     })
     .then(() => {
-        alert(`User invited successfully!`);
+        const alertBox = document.getElementById("inviteSuccessAlert");
+        if (alertBox) {
+            alertBox.style.display = "block";
+            setTimeout(() => {
+                alertBox.style.display = "none";
+            }, 3000); // hides after 3 seconds
+        }
         toggleUserList();
         document.getElementById("stopwatchContainer").style.display = "block";
         document.getElementById("showUsersBtnContainer").style.display = "none";
