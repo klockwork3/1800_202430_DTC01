@@ -362,8 +362,12 @@ function addTaskToUI(taskId, taskData, isCompleted) {
             </div>
         </div>
     `;
-    document.getElementById('tasks').insertAdjacentHTML('afterbegin', taskHTML);
-
+    if (isCompleted) {
+        document.getElementById('tasks').insertAdjacentHTML('beforeend', taskHTML);
+    } else {
+        document.getElementById('tasks').insertAdjacentHTML('afterbegin', taskHTML);
+    }
+    
     const insertedTask = document.querySelector(`.task-item[data-task-id="${taskId}"]`);
 const textarea = insertedTask?.querySelector("textarea");
 
