@@ -357,8 +357,19 @@ function addTaskToUI(taskId, taskData, isCompleted) {
             </div>
 
             <div class="task-details" style="display: none;">
-                <p class="text-muted mb-1"><strong>Deadline:</strong> ${taskData.deadline || "None"}</p>
-                <p class="text-muted mb-0"><strong>Difficulty:</strong> ${"⭐".repeat(taskData.value || 1)}</p>
+                <div class="editable-group text-muted mb-1">
+                <strong>Deadline:</strong>
+                <span class="editable-text deadline-text" data-task-id="${taskId}" data-value="${taskData.deadline || ''}" data-is-completed="${isCompleted}">
+                    ${taskData.deadline || "None"}
+                </span>
+                </div>
+                <div class="editable-group text-muted mb-0">
+                <strong>Difficulty:</strong>
+                <span class="editable-text difficulty-text" data-task-id="${taskId}" data-value="${taskData.value || 1}" data-is-completed="${isCompleted}">
+                    ${"⭐".repeat(taskData.value || 1)}
+                </span>
+                </div>
+
             </div>
         </div>
     `;
@@ -1399,3 +1410,93 @@ function calculateLevel(points) {
       pointsNeeded: fib2 - points
     };
   }
+
+  document.getElementById('tasks').addEventListener('click', function (event) {
+    const target = event.target;
+
+    if (target.classList.contains('editable-text')) {
+        const type = target.classList.contains('deadline-text') ? 'deadline' : 'value';
+        const isCompleted = target.dataset.isCompleted === "true";
+        const taskId = target.dataset.taskId;
+        const currentValue = target.dataset.value;
+
+        let input;
+
+        if (type === 'deadline') {
+            input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'form-control form-control-sm flatpickr-inline-deadline';
+            input.value = currentValue;
+            
+            target.replaceWith(input);
+        document.body.offsetHeight; // force reflow to ensure input is in the DOM
+
+        flatpickr(input, {
+        enableTime: false,
+        dateFormat: "F j, Y",
+        defaultDate: currentValue || null,
+        minDate: "today",
+        onClose: function(selectedDates, dateStr) {
+            setTimeout(() => {
+            input.value = dateStr;
+            input.dispatchEvent(new Event('blur'));
+            }, 0);
+        }
+        });
+
+        input.focus();
+
+            
+        } else {
+            input = document.createElement('select');
+            input.className = 'form-select form-select-sm';
+            for (let i = 1; i <= 5; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = '⭐'.repeat(i);
+                if (parseInt(currentValue) === i) option.selected = true;
+                input.appendChild(option);
+            }
+            target.replaceWith(input);
+
+        }
+
+        input.style.maxWidth = '200px';
+        input.dataset.taskId = taskId;
+        input.dataset.isCompleted = isCompleted;
+        input.dataset.type = type;
+
+
+        input.addEventListener('blur', () => {
+            const newValue = type === 'value' ? parseInt(input.value) : input.value;
+            const collection = isCompleted ? 'taskHistory' : 'tasks';
+
+            db.collection("users").doc(firebase.auth().currentUser.uid).collection(collection).doc(taskId).update({
+                [type]: newValue
+            }).then(() => {
+                const span = document.createElement('span');
+                span.className = `editable-text ${type === 'value' ? 'difficulty-text' : 'deadline-text'}`;
+                span.dataset.taskId = taskId;
+                span.dataset.value = newValue;
+                span.dataset.isCompleted = isCompleted;
+                if (type === 'value') {
+                    span.textContent = '⭐'.repeat(newValue);
+                  } else if (type === 'deadline') {
+                    span.textContent = input.value || "None";
+                  } else {
+                    span.textContent = newValue || "None";
+                  }
+                  
+                input.replaceWith(span);
+                const feedback = document.getElementById('taskFeedback');
+                if (feedback) {
+                    feedback.classList.remove('d-none');
+                    setTimeout(() => feedback.classList.add('d-none'), 1500);
+                }
+
+            }).catch(error => {
+                console.error(`Error updating ${type}:`, error);
+            });
+        });
+    }
+});

@@ -15,4 +15,9 @@
     animation: pulse-success 0.6s ease-out;
 }
 
-/* update */
+.editable-text {
+    cursor: pointer;
+    display: inline-block;
+    min-width: 80px;
+  }
+  
