@@ -618,7 +618,32 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
             });
         }
-
+        
+        document.getElementById('tasks').addEventListener('blur', function (event) {
+            if (event.target.classList.contains('task-name-input')) {
+                const newName = event.target.value.trim();
+                const taskId = event.target.getAttribute('data-task-id');
+                const isCompleted = event.target.classList.contains('completed-task');
+                const collection = isCompleted ? 'taskHistory' : 'tasks';
+        
+                const user = firebase.auth().currentUser;
+                if (user && taskId && newName) {
+                    db.collection("users").doc(user.uid).collection(collection).doc(taskId).update({
+                        name: newName
+                    }).then(() => {
+                        console.log(`Task ${taskId} updated in Firestore.`);
+                        const feedback = document.getElementById('taskFeedback');
+                        if (feedback) {
+                            feedback.classList.remove('d-none');
+                            setTimeout(() => feedback.classList.add('d-none'), 1500);
+                        }
+                    }).catch(error => {
+                        console.error("Error updating task name:", error);
+                    });
+                }
+            }
+        }, true);  // useCapture = true to ensure blur bubbles up
+        
 });
 
 //************************************************************************************************ */
