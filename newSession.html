@@ -318,43 +318,41 @@
 
 
 
-<body class="my-5 py-5 d-flex flex-column align-items-center">
+<body class="bg-light py-4">
     <div id="participantsList" class="participants-list">
-        <h4>Users in Session
-        </h4>
+        <h4>Users in Session</h4>
         <div id="sessionParticipants" class="participants-container"></div>
-    </div>
+      </div>
+      
+    <div class="container d-flex flex-column align-items-center" style="max-width: 600px;">
 
-
-    <div class="text-center">
-        <h1 class="my-5 fs-2 fw-bold">New Session</h1>
-    </div>
-
-    <!-- Show Online Users Button -->
-    <div id="showUsersBtnContainer" class="text-center mb-4">
-        <button id="showUsersBtn" class="btn btn-info btn-lg fw-semibold" onclick="toggleUserList()">Invite a Partner</button>
-    </div>
-
-    <!-- Stopwatch + Stop Session Container -->
-    <div class="text-center mb-4">
-        <button class="btn btn-outline-danger btn-lg fw-semibold" onclick="endStudySession()">Stop Session</button>
-    </div>
-
-    <div id="stopwatchContainer" style="display: none;">
-        <!-- Stopwatch Card -->
-        <div class="card shadow p-4 mb-4 bg-white rounded" style="max-width: 500px; width: 100%;">
-            <div class="card-body text-center">
-                <p class="fs-5 fw-medium mb-1">Session Started: <span id="session" class="fw-semibold">Not started</span></p>
-                <div id="display" class="fs-4 fw-bold mb-3">Time Elapsed: 00:00:00</div>
-                <div class="d-flex justify-content-center gap-2 flex-wrap">
-                </div>
-            </div>
-        </div>    
-    </div>
-
-
+        <h1 class="text-center mb-4 fw-bold">New Session</h1>
     
-</div>
+        <!-- Invite Button -->
+        <div id="showUsersBtnContainer" class="mb-4 w-100 text-center">
+          <button id="showUsersBtn" class="btn btn-info btn-lg fw-semibold" onclick="toggleUserList()">Invite a Partner</button>
+        </div>
+    
+        <!-- Invite Success Alert -->
+        <div id="inviteSuccessAlert" class="alert alert-success text-center w-100" style="display: none;">
+          User invited successfully!
+        </div>
+    
+        <!-- Stopwatch Card -->
+        <div id="stopwatchContainer" style="display: none; width: 100%;">
+          <div class="card shadow p-4 mb-4">
+            <div class="card-body text-center">
+              <p class="fs-5 fw-medium mb-1">Session Started: <span id="session" class="fw-semibold">Not started</span></p>
+              <div id="display" class="fs-4 fw-bold mb-3">Time Elapsed: 00:00:00</div>
+            </div>
+          </div>
+        </div>
+    
+        <!-- Stop Session Button -->
+        <div class="text-center mb-5">
+          <button class="btn btn-outline-danger btn-lg fw-semibold" onclick="endStudySession()">Stop Session</button>
+        </div>
+      </div>
 
 
 
