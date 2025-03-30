@@ -137,85 +137,109 @@ function getSelectedStarValue() {
 
 // moving completed tasks to history
 function removeTask(checkbox) {
-    const taskItem = checkbox.parentElement;
-    const taskName = taskItem.querySelector(".task-name"); // Select only the name
-    const taskInput = taskItem.querySelector(".task-name-input");
+    console.log("removeTask triggered with checkbox:", checkbox);
+
+    const taskItem = checkbox.parentElement.parentElement;
+    console.log("taskItem:", taskItem);
+
     const taskId = taskItem.getAttribute('data-task-id');
+    console.log("taskId:", taskId);
+
     const user = firebase.auth().currentUser;
+    console.log("user:", user ? user.uid : "No user");
 
-    if (user && taskId) {
-        if (checkbox.checked) {
-            // ✅ MARK AS COMPLETE
-    db.collection("users").doc(user.uid).collection("tasks").doc(taskId).get()
-    .then((doc) => {
-        if (doc.exists) {
-            const taskData = doc.data();
+    if (!user || !taskId) {
+        console.error("No user or task ID available - user:", user, "taskId:", taskId);
+        return;
+    }
 
-            const completedTask = {
-                ...taskData,
-                completed: true,
-                completedAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            
-            return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).set(completedTask)
-                .then(() => {
-                    return db.collection("users").doc(user.uid).collection("tasks").doc(taskId).delete();
-                })
-                .then(() => {
-                    taskItem.remove();
-                    // 🔁 Re-fetch the stored version (with populated timestamp)
-                    return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).get();
-                })
-                .then((doc) => {
-                    if (doc.exists) {
-                        addTaskToUI(taskId, doc.data(), true);
-                    }
-                });
-            
-        }
-    })
-    .catch((error) => {
-        console.error("Error moving task to history: ", error);
-    });
+    if (checkbox.checked) {
+        // ✅ MARK AS COMPLETE
+        console.log(`Attempting to complete task ${taskId} for user ${user.uid}`);
+        
+        db.collection("users").doc(user.uid).collection("tasks").doc(taskId).get()
+            .then((doc) => {
+                if (!doc.exists) {
+                    console.error(`Task ${taskId} does not exist`);
+                    return;
+                }
 
-        } else {
-            // ✅ MOVE BACK TO ACTIVE TASKS
-            db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).get()
-                .then((doc) => {
-                    if (doc.exists) {
-                        const taskData = doc.data();
+                const taskData = doc.data();
+                console.log("Task data:", taskData);
 
-                        // Move task back to active
-                        const activeTask = {
-                            ...taskData,
-                            completed: false,
-                            completedAt: null
-                        };
-                        
+                const completedTask = {
+                    ...taskData,
+                    completed: true,
+                    completedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
 
-                        return db.collection("users").doc(user.uid).collection("tasks").doc(taskId).set(activeTask);
-                    }
-                })
-                .then(() => {
-                    return db.collection("users").doc(user.uid).collection("tasks").doc(taskId).get();
-                })
-                .then((doc) => {
-                    if (doc.exists) {
+                return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).set(completedTask)
+                    .then(() => {
+                        console.log(`Task ${taskId} moved to history`);
+                        return db.collection("users").doc(user.uid).update({
+                            StatPoints: firebase.firestore.FieldValue.increment(taskData.value || 1)
+                        });
+                    })
+                    .then(() => {
+                        console.log(`StatPoints incremented by ${taskData.value || 1}`);
+                        return db.collection("users").doc(user.uid).collection("tasks").doc(taskId).delete();
+                    })
+                    .then(() => {
+                        console.log(`Task ${taskId} deleted from active tasks`);
+                        taskItem.remove();
+                        return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).get();
+                    })
+                    .then((doc) => {
+                        if (doc.exists) {
+                            console.log("Re-fetched task from history:", doc.data());
+                            addTaskToUI(taskId, doc.data(), true);
+                        }
+                    });
+            })
+            .catch((error) => {
+                console.error("Error in task completion process:", error);
+            });
+    } else {
+        // ✅ MOVE BACK TO ACTIVE TASKS
+        console.log(`Attempting to un-complete task ${taskId}`);
+        
+        db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).get()
+            .then((doc) => {
+                if (!doc.exists) {
+                    console.error(`Task ${taskId} not found in history`);
+                    return;
+                }
+
+                const taskData = doc.data();
+                const activeTask = {
+                    ...taskData,
+                    completed: false,
+                    completedAt: null
+                };
+
+                return db.collection("users").doc(user.uid).collection("tasks").doc(taskId).set(activeTask)
+                    .then(() => {
+                        console.log(`Task ${taskId} moved back to active tasks`);
+                        // Decrement StatPoints by the same value
+                        return db.collection("users").doc(user.uid).update({
+                            StatPoints: firebase.firestore.FieldValue.increment(-(taskData.value || 1))
+                        });
+                    })
+                    .then(() => {
+                        console.log(`StatPoints decremented by ${taskData.value || 1}`);
+                        return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).delete();
+                    })
+                    .then(() => {
+                        console.log(`Task ${taskId} removed from history`);
                         const tasksContainer = document.getElementById('tasks');
                         const existingTask = tasksContainer.querySelector(`[data-task-id="${taskId}"]`);
-                        if (existingTask) {
-                            existingTask.remove();
-                        }
-                        addTaskToUI(taskId, doc.data(), false);
-                    }
-                })
-                
-                
-                
-                .catch((error) => {
-                    console.error("Error moving task back to active: ", error);
-                });
-        }
+                        if (existingTask) existingTask.remove();
+                        addTaskToUI(taskId, activeTask, false);
+                    });
+            })
+            .catch((error) => {
+                console.error("Error moving task back to active:", error);
+            });
     }
 }
 
