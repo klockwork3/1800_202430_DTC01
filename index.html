@@ -50,9 +50,11 @@
             left: 67% !important;
             visibility: hidden;
         }
+
         .custom-start-chat {
             left: 67% !important;
         }
+
         .custom-start-users {
             left: 67% !important;
         }
@@ -61,23 +63,27 @@
 </head>
 
 <body>
+    <!-- top nav bar -->
+    <div id="nav-placeholder"></div>
+
+
+
     <div class="my-5 py-5">
-        <div class="jumbotron text-center">
-            <h1 class="display-4">Welcome to CheckMate</h1>
-            <p class="lead">Log into Checkmate</p>
+        <div class="hero text-center py-5">
+            <h1 class="display-4 tektur-bold">Welcome to CheckMate</h1>
+            <p class="lead tektur-regular">Log into Checkmate</p>
+            <a class="btn btn-primary btn-lg tektur-bold"
+                style="color: black; border-color:black; background-color: #99BC85" href="login.html" role="button">Log
+                In / Sign Up</a>
         </div>
 
-        <div class="d-flex align-items-center justify-content-center">
-            <p class="lead">
-                <a class="btn btn-primary btn-lg" href="login.html" role="button">Log In / Sign Up</a>
-            </p>
-        </div>
+
     </div>
 
-    <div class="d-flex justify-content-center">
+    <div class="d-flex justify-content-center tektur-bold">
         <h3>How to use CheckMate:</h3>
     </div>
-    <div class="d-flex justify-content-center py-3">
+    <div class="d-flex justify-content-center py-3 tektur-regular">
         <ol class="d-flex flex-column gap-3">
             <li>Create new study session with your friend or a random user</li>
             <li>Add new tasks</li>
@@ -100,8 +106,8 @@
 
     <!-- Link to scripts of your own -->
     <!-- <script src="./scripts/script.js"></script> -->
-    <!--Bottom Nav-->
-    <div id="nav-placeholder"></div>
+
+
 
 
     <script src="./scripts/firebaseAPI_DTC01.js"></script>

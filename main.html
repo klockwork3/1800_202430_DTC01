@@ -183,10 +183,12 @@
             left: 67% !important;
             /* Positions the task list div in the nav bar*/
         }
+
         .custom-start-chat {
             left: 67% !important;
             /* Positions the task list div in the nav bar*/
         }
+
         .custom-start-users {
             left: 67% !important;
             /* Positions the task list div in the nav bar*/
@@ -196,11 +198,11 @@
             font-size: 0.8rem;
             opacity: 0.8;
         }
+
         .task-item i {
             font-size: 0.75rem;
             color: #6c757d;
-}
-
+        }
     </style>
 
     <!-------------------------------------------------------->
@@ -243,39 +245,22 @@
         </p>
     </div>
 
-   <!-- The Task List -->
-   <div id="taskList" class="task-list">
-    <h4>Task List
-        <button type="button" class="btn-close btn-close-black float-end" aria-label="Close"
-            onclick="toggleTaskList()">
-        </button>
-    </h4>
-    <div class="d-flex justify-content-start gap-2 mb-3">
-        <button id="deleteAllTasksButton" class="btn btn-outline-danger btn-sm fw-semibold">🗑️ Delete All</button>
-        <button id="toggleAllDetailsButton" class="btn btn-outline-secondary btn-sm fw-semibold">Show All Details</button>
-    </div>
-    
-    <div id="taskFeedback" class="alert alert-success d-none" role="alert" style="margin-top: 10px;">
-        Task updated!
-    </div>
+    <!-- The Task List -->
+    <div id="taskList" class="task-list">
+        <h4>Task List
+            <button type="button" class="btn-close btn-close-black float-end" aria-label="Close"
+                onclick="toggleTaskList()">
+            </button>
+        </h4>
+        <div class="d-flex justify-content-start gap-2 mb-3">
+            <button id="deleteAllTasksButton" class="btn btn-outline-danger btn-sm fw-semibold">🗑️ Delete All</button>
+            <button id="toggleAllDetailsButton" class="btn btn-outline-secondary btn-sm fw-semibold">Show All
+                Details</button>
+        </div>
 
-    <!-- Tasks Container -->
-    <div id="tasks" class="task-container">
-        <!-- Task items will be added here dynamically -->
-    </div>
-    <!-- Add task button -->
-    <div class="add-task-button d-flex justify-content-center">
-        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exampleModal"
-            data-bs-whatever="@getbootstrap">+ Add New Task</button>
-    </div>
-</div>
-        
-
-        <!--  Task Feedback Message -->
         <div id="taskFeedback" class="alert alert-success d-none" role="alert" style="margin-top: 10px;">
             Task updated!
         </div>
-          
 
         <!-- Tasks Container -->
         <div id="tasks" class="task-container">
@@ -286,6 +271,24 @@
             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exampleModal"
                 data-bs-whatever="@getbootstrap">+ Add New Task</button>
         </div>
+    </div>
+
+
+    <!--  Task Feedback Message -->
+    <div id="taskFeedback" class="alert alert-success d-none" role="alert" style="margin-top: 10px;">
+        Task updated!
+    </div>
+
+
+    <!-- Tasks Container -->
+    <div id="tasks" class="task-container">
+        <!-- Task items will be added here dynamically -->
+    </div>
+    <!-- Add task button -->
+    <div class="add-task-button d-flex justify-content-center">
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exampleModal"
+            data-bs-whatever="@getbootstrap">+ Add New Task</button>
+    </div>
     </div>
 
     <!-- Add Task Modal -->
@@ -370,7 +373,7 @@
     <script src="./scripts/nav.js"></script>
     <script src="./scripts/fetchProfile.js"></script>
 
-    
+
 
 </body>
 
