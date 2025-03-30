@@ -587,6 +587,38 @@ document.addEventListener("DOMContentLoaded", function () {
                 toggleAllBtn.textContent = showingAll ? 'Hide All Details' : 'Show All Details';
             });
         }
+
+        const deleteAllBtn = document.getElementById('deleteAllTasksButton');
+        if (deleteAllBtn) {
+            deleteAllBtn.addEventListener('click', function () {
+                if (!confirm("Are you sure you want to permanently delete ALL active and completed tasks?")) return;
+
+                const user = firebase.auth().currentUser;
+                if (!user) return;
+
+                const userDoc = db.collection("users").doc(user.uid);
+                const tasksRef = userDoc.collection("tasks");
+                const historyRef = userDoc.collection("taskHistory");
+
+                const deleteFromCollection = (ref) => {
+                    return ref.get().then(snapshot => {
+                        const deletions = snapshot.docs.map(doc => ref.doc(doc.id).delete());
+                        return Promise.all(deletions);
+                    });
+                };
+
+                Promise.all([
+                    deleteFromCollection(tasksRef),
+                    deleteFromCollection(historyRef)
+                ]).then(() => {
+                    document.getElementById('tasks').innerHTML = '';
+                    console.log("All active and completed tasks deleted.");
+                }).catch((error) => {
+                    console.error("Error deleting all tasks:", error);
+                });
+            });
+        }
+
 });
 
 //************************************************************************************************ */
