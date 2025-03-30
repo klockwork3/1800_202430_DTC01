@@ -176,12 +176,41 @@ function removeTask(checkbox) {
                 return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).set(completedTask)
                     .then(() => {
                         console.log(`Task ${taskId} moved to history`);
-                        return db.collection("users").doc(user.uid).update({
-                            StatPoints: firebase.firestore.FieldValue.increment(taskData.value || 1)
-                        });
+                        
+                        // First, get current user data to check level
+                        return db.collection("users").doc(user.uid).get()
+                            .then((userDoc) => {
+                                if (!userDoc.exists) {
+                                    console.error("User document not found");
+                                    return;
+                                }
+                                
+                                const userData = userDoc.data();
+                                const pointsToAdd = taskData.value || 1;
+                                const currentPoints = (userData.StatPoints || 0);
+                                const newPoints = currentPoints + pointsToAdd;
+                                const currentLevel = userData.Level || 1;
+                                
+                                // Calculate new level based on new points total
+                                const levelInfo = calculateLevel(newPoints);
+                                
+                                // Prepare update object
+                                const updateData = {
+                                    StatPoints: firebase.firestore.FieldValue.increment(pointsToAdd)
+                                };
+                                
+                                // If level increased, update Level field
+                                if (levelInfo.currentLevel > currentLevel) {
+                                    updateData.Level = levelInfo.currentLevel;
+                                    console.log(`LEVEL UP! User reached level ${levelInfo.currentLevel}`);
+                                }
+                                
+                                // Update user document with points and possibly level
+                                return db.collection("users").doc(user.uid).update(updateData);
+                            });
                     })
                     .then(() => {
-                        console.log(`StatPoints incremented by ${taskData.value || 1}`);
+                        console.log(`StatPoints and Level updated`);
                         return db.collection("users").doc(user.uid).collection("tasks").doc(taskId).delete();
                     })
                     .then(() => {
@@ -220,13 +249,41 @@ function removeTask(checkbox) {
                 return db.collection("users").doc(user.uid).collection("tasks").doc(taskId).set(activeTask)
                     .then(() => {
                         console.log(`Task ${taskId} moved back to active tasks`);
-                        // Decrement StatPoints by the same value
-                        return db.collection("users").doc(user.uid).update({
-                            StatPoints: firebase.firestore.FieldValue.increment(-(taskData.value || 1))
-                        });
+                        
+                        // Get current user data to check level
+                        return db.collection("users").doc(user.uid).get()
+                            .then((userDoc) => {
+                                if (!userDoc.exists) {
+                                    console.error("User document not found");
+                                    return;
+                                }
+                                
+                                const userData = userDoc.data();
+                                const pointsToSubtract = taskData.value || 1;
+                                const currentPoints = (userData.StatPoints || 0);
+                                const newPoints = currentPoints - pointsToSubtract;
+                                const currentLevel = userData.Level || 1;
+                                
+                                // Calculate new level based on reduced points
+                                const levelInfo = calculateLevel(newPoints);
+                                
+                                // Prepare update object
+                                const updateData = {
+                                    StatPoints: firebase.firestore.FieldValue.increment(-pointsToSubtract)
+                                };
+                                
+                                // If level decreased, update Level field
+                                if (levelInfo.currentLevel < currentLevel) {
+                                    updateData.Level = levelInfo.currentLevel;
+                                    console.log(`LEVEL DOWN! User decreased to level ${levelInfo.currentLevel}`);
+                                }
+                                
+                                // Update user document with adjusted points and possibly level
+                                return db.collection("users").doc(user.uid).update(updateData);
+                            });
                     })
                     .then(() => {
-                        console.log(`StatPoints decremented by ${taskData.value || 1}`);
+                        console.log(`StatPoints and Level updated`);
                         return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).delete();
                     })
                     .then(() => {
@@ -1375,3 +1432,23 @@ function notifyParticipants(sessionId, notification) {
         });
 }
 
+//Leveling Logic
+
+function calculateLevel(points) {
+    let level = 1;
+    let fib1 = 0; // Points needed for level 1
+    let fib2 = 5; // Points needed for level 2
+    
+    while (points >= fib2) {
+      level++;
+      const nextFib = fib1 + fib2;
+      fib1 = fib2;
+      fib2 = nextFib;
+    }
+    
+    return {
+      currentLevel: level,
+      nextLevelPoints: fib2,
+      pointsNeeded: fib2 - points
+    };
+  }
