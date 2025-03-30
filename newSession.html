@@ -330,18 +330,28 @@
         <h1 class="my-5 fs-2 fw-bold">New Session</h1>
     </div>
 
-    <div class="d-flex flex-column align-items-center gap-3">
-        <div id="info" class="text-center">
-            <p class="fs-5 fw-medium">Session Started: <span id="session" class="fw-semibold">Not started</span></p>
-        </div>
-        <div id="display" class="fs-4 fw-bold">Time Elapsed: 00:00:00</div>
-        <div class="d-flex gap-3">
-            <button class="btn btn-primary btn-lg fw-semibold" onclick="startStopwatch()">Start</button>
-            <button class="btn btn-warning btn-lg fw-semibold" onclick="pauseStopwatch()">Pause</button>
-            <button class="btn btn-danger btn-lg fw-semibold" onclick="resetStopwatch()">Reset</button>
-        </div>
-        <button class="btn btn-danger btn-lg fw-semibold" onclick="endStudySession()">Stop Session</button>
+    <!-- Show Online Users Button -->
+    <div id="showUsersBtnContainer" class="text-center mb-4">
+        <button id="showUsersBtn" class="btn btn-info btn-lg fw-semibold" onclick="toggleUserList()">Invite a Partner</button>
     </div>
+
+    <!-- Stopwatch + Stop Session Container -->
+    <div id="stopwatchContainer" style="display: none;">
+        <!-- Stopwatch Card -->
+        <div class="card shadow p-4 mb-4 bg-white rounded" style="max-width: 500px; width: 100%;">
+            <div class="card-body text-center">
+                <p class="fs-5 fw-medium mb-1">Session Started: <span id="session" class="fw-semibold">Not started</span></p>
+                <div id="display" class="fs-4 fw-bold mb-3">Time Elapsed: 00:00:00</div>
+            </div>
+        </div>
+
+        <!-- Stop Session Button (Outside the Card) -->
+        <div class="text-center mb-4">
+            <button class="btn btn-outline-danger btn-lg fw-semibold" onclick="endStudySession()">Stop Session</button>
+        </div>
+    </div>
+
+
 
 
 

@@ -1133,6 +1133,8 @@ function inviteUserToSession(invitedUserId) {
     .then(() => {
         alert(`User invited successfully!`);
         toggleUserList();
+        document.getElementById("stopwatchContainer").style.display = "block";
+        document.getElementById("showUsersBtnContainer").style.display = "none";
     })
     .catch((error) => {
         console.error("Error inviting user:", error);
