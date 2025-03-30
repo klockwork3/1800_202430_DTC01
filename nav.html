@@ -21,6 +21,18 @@
             font-variation-settings: "wdth" 100;
             color: black
       }
+
+      .navbar {
+            height: 55px;
+            /* Adjust height as needed */
+            padding: 5px 10px;
+            /* Reduce padding */
+      }
+
+      .navbar-brand img {
+            height: 25px;
+            /* Adjust logo size */
+      }
 </style>
 
 <nav class="navbar navbar-expand-lg navbar-light fixed-top" style="background-color: #C9B194">
@@ -37,17 +49,27 @@
                   <li class="nav-item">
                         <a class="nav-link tektur" href="leaderboard.html">leaderboard</a>
                   </li>
+
+                  <div class="d-flex align-items-center position-absolute top-50 custom-start translate-middle ">
+                        <a id="taskListNavCenter" onclick="toggleTaskList()"
+                              class="btn btn-outline-light bg-light fs-5 text-black d-flex align-items-center justify-content-center">
+                              <img src="./images/to-do-list.png" alt="Task List" class="px-1" width="38">
+                        </a>
+                  </div>
             </ul>
 
       </div>
-      <ul class="navbar-nav ml-auto tektur-bold">
-            <li class="nav-item">
+      <ul class="navbar-nav ml-auto tektur-bold d-flex align-items-center">
+            <li class="nav-item p-4">
                   <a class="btn btn-primary btn-sm" style="color: black; border-color:black; background-color: #99BC85"
                         href="login.html" role="button">Log In / Sign Up</a>
             </li>
-            <a class="navbar-brand" href="profile.html">
-                  <img style="border: 2px solid black; border-radius: 50%" src="images/avatar-icons/bear.png"
-                        height=50px alt="Default Avatar" />
+            <li class="nav-item">
+                  <a class="navbar-brand" href="profile.html">
+                        <img style="border: 2px solid black; border-radius: 50%; height: 40px; width: 40px;"
+                              src="images/avatar-icons/bear.png" alt="Default Avatar" />
+                  </a>
+            </li>
       </ul>
 
 </nav>

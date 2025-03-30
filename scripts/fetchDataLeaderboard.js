@@ -4,6 +4,7 @@ var your_collection_name = "users"; // Name of the collection in Firestore
 function fetchDataRealTime() {
       db.collection(your_collection_name)
             .orderBy("StatPoints", "desc")
+            .limit(15)
             .onSnapshot((querySnapshot) => {
                   const dataContainer = document.getElementById("leaderboard-placeholder");
                   dataContainer.innerHTML = "";

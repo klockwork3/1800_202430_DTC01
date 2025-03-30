@@ -43,3 +43,26 @@ body {
     background-position: center;
     background-repeat: no-repeat;
 }
+
+
+#leaderboard-placeholder table {
+    max-width: 80%;
+    /* Adjust width of table */
+    margin: auto;
+    /* Center the table */
+    font-size: 14px;
+    /* Reduce font size */
+}
+
+#leaderboard-placeholder th,
+#leaderboard-placeholder td {
+    padding: 6px 10px;
+    /* Reduce cell padding */
+}
+
+.card {
+    max-width: 600px;
+    /* Limit overall card size */
+    margin: auto;
+
+}
