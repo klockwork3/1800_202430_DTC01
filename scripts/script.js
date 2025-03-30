@@ -345,14 +345,13 @@ function addTaskToUI(taskId, taskData, isCompleted) {
             <div class="d-flex justify-content-between align-items-center mb-1">
                 <div class="d-flex align-items-center gap-2 flex-grow-1">
                     <input type="checkbox" class="form-check-input" onclick="removeTask(this)" ${isCompleted ? 'checked' : ''}>
-                    <input 
-                        type="text" 
+                    <textarea
                         class="form-control form-control-sm task-name-input ${isCompleted ? 'completed-task' : ''}" 
-                        value="${taskData.name}" 
                         data-task-id="${taskId}"
-                        style="flex: 1;" 
+                        style="flex: 1; resize: none; overflow: hidden; white-space: pre-wrap; border: none; background: transparent; padding: 0;"
+                        rows="1"
                         ${isCompleted ? "readonly" : ""}
-                    />
+                    >${taskData.name}</textarea>
                 </div>
                 <button class="btn btn-sm btn-outline-danger ms-2" onclick="deleteTask('${taskId}', ${isCompleted})">✖️</button>
             </div>
@@ -364,6 +363,20 @@ function addTaskToUI(taskId, taskData, isCompleted) {
         </div>
     `;
     document.getElementById('tasks').insertAdjacentHTML('afterbegin', taskHTML);
+
+    const insertedTask = document.querySelector(`.task-item[data-task-id="${taskId}"]`);
+const textarea = insertedTask?.querySelector("textarea");
+
+if (textarea) {
+  textarea.style.height = 'auto';
+  textarea.style.height = textarea.scrollHeight + 'px';
+
+  textarea.addEventListener('input', () => {
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+  });
+}
+
 }
 
 
