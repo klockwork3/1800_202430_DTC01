@@ -215,7 +215,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 reminderTime: taskReminderTime,
                 completed: false,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                value: taskValue
+                value: taskValue,
+                order: Date.now() // Use timestamp for initial ordering
             };
 
             // Get current user
@@ -295,7 +296,7 @@ function loadTasks() {
 
         // Fetch active tasks
         db.collection("users").doc(user.uid).collection("tasks")
-            .orderBy("createdAt", "desc")
+            .orderBy("order", "asc")
             .get()
             .then((querySnapshot) => {
                 querySnapshot.forEach((doc) => {
@@ -309,8 +310,8 @@ function loadTasks() {
 
         // Fetch completed tasks from history
         db.collection("users").doc(user.uid).collection("taskHistory")
-            .orderBy("completedAt", "desc")
-            .get()
+        .orderBy("order", "asc")
+        .get()
             .then((querySnapshot) => {
                 querySnapshot.forEach((doc) => {
                     const taskData = doc.data();
@@ -373,11 +374,8 @@ function addTaskToUI(taskId, taskData, isCompleted) {
             </div>
         </div>
     `;
-    if (isCompleted) {
-        document.getElementById('tasks').insertAdjacentHTML('beforeend', taskHTML);
-    } else {
-        document.getElementById('tasks').insertAdjacentHTML('afterbegin', taskHTML);
-    }
+    document.getElementById('tasks').insertAdjacentHTML('beforeend', taskHTML);
+
     
     const insertedTask = document.querySelector(`.task-item[data-task-id="${taskId}"]`);
 const textarea = insertedTask?.querySelector("textarea");
@@ -1299,6 +1297,29 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
+
+    // Make task list draggable and update order in Firestore
+    const tasksContainer = document.getElementById('tasks');
+    if (tasksContainer) {
+        new Sortable(tasksContainer, {
+            animation: 150,
+            handle: '.task-name-input', // Drag by task name area
+            onEnd: function (evt) {
+                const taskItems = [...tasksContainer.querySelectorAll('.task-item')];
+                const user = firebase.auth().currentUser;
+
+                taskItems.forEach((item, index) => {
+                    const taskId = item.getAttribute('data-task-id');
+                    if (taskId && user) {
+                        db.collection("users").doc(user.uid).collection("tasks").doc(taskId).update({
+                            order: index
+                        }).catch(err => console.error("Error updating task order:", err));
+                    }
+                });
+            }
+        });
+    }
+
 });
 //*********************************************************************************** */
 //Notification system
