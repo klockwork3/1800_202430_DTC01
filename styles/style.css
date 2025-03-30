@@ -28,3 +28,18 @@
     user-select: none;
     padding-right: 6px;
 }
+
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+
+}
+
+body {
+    background-image: url('../images/backgroundDarkTrees.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}

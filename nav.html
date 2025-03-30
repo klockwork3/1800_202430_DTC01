@@ -24,7 +24,7 @@
 </style>
 
 <nav class="navbar navbar-expand-lg navbar-light fixed-top" style="background-color: #C9B194">
-      <a class="navbar-brand tektur-bold-logo" href="#">
+      <a class="navbar-brand tektur-bold-logo" href="index.html">
             <img src="images/logo.png" alt="Logo">
             checkmate
       </a>
@@ -32,7 +32,7 @@
       <div class="collapse navbar-collapse tektur-regular">
             <ul class="navbar-nav mr-auto">
                   <li class="nav-item">
-                        <a class="nav-link tektur" href="">about</a>
+                        <a class="nav-link tektur" href="about.html">about</a>
                   </li>
                   <li class="nav-item">
                         <a class="nav-link tektur" href="leaderboard.html">leaderboard</a>
@@ -53,45 +53,45 @@
 
 
 <!--Bottom Nav-->
-<!-- <nav class="navbar navbar-dark bg-dark fixed-top">
-      <div class="container-fluid"> -->
-<!--Hamburger-->
-<!-- <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas"
+<nav class="navbar navbar-dark bg-dark fixed-bottom">
+      <div class="container-fluid">
+            <!--Hamburger-->
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas"
                   data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar"
                   aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon"></span>
-            </button> -->
-<!-- Center: Home Button and Task List Icon -->
-<!-- <div class="d-flex align-items-center position-absolute custom-start-users top-50 translate-middle ">
+            </button>
+            <!-- Center: Home Button and Task List Icon -->
+            <div class="d-flex align-items-center position-absolute custom-start-users top-50 translate-middle ">
                   <a id="taskListNavCenter" onclick="toggleUserList()"
                         class="btn btn-outline-light bg-light fs-5 text-black d-flex align-items-center justify-content-center">
                         <img src="./images/add-user.png" alt="Chat List" class="px-1" width="38">
                   </a>
-            </div> -->
-<!-- <div class="d-flex align-items-center position-absolute top-50 custom-start-chat translate-middle ">
+            </div>
+            <div class="d-flex align-items-center position-absolute top-50 custom-start-chat translate-middle ">
                   <a id="taskListNavCenter" onclick="toggleChatList()"
                         class="btn btn-outline-light bg-light fs-5 text-black d-flex align-items-center justify-content-center">
                         <img src="./images/chat.png" alt="Chat List" class="px-1" width="38">
                   </a>
-            </div> -->
-<!-- <div class="d-flex align-items-center position-absolute top-50 start-50 translate-middle">
+            </div>
+            <div class="d-flex align-items-center position-absolute top-50 start-50 translate-middle">
                   <a class="btn btn-outline-light bg-light fs-5 text-black d-flex align-items-center justify-content-center me-3"
                         href="main.html">
                         <img src="./images/home.png" alt="Home" class="px-1" width="28"> Home
                   </a>
-            </div> -->
-<!-- <div class="d-flex align-items-center position-absolute top-50 custom-start translate-middle ">
+            </div>
+            <div class="d-flex align-items-center position-absolute top-50 custom-start translate-middle ">
                   <a id="taskListNavCenter" onclick="toggleTaskList()"
                         class="btn btn-outline-light bg-light fs-5 text-black d-flex align-items-center justify-content-center">
                         <img src="./images/to-do-list.png" alt="Task List" class="px-1" width="38">
                   </a>
-            </div> -->
-<!--Profile Avatar-->
-<!-- <a class="navbar-brand" href="profile.html"> <img style="border-radius: 50%"
+            </div>
+            <!--Profile Avatar-->
+            <a class="navbar-brand" href="profile.html"> <img style="border-radius: 50%"
                         src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" height="36"
-                        alt="Default Avatar" /></a> -->
-<!--Hamburger Menu-->
-<!-- <div class="offcanvas offcanvas-start bg-secondary text-bg-dark pb-2" tabindex="-1" id="offcanvasDarkNavbar"
+                        alt="Default Avatar" /></a>
+            <!--Hamburger Menu-->
+            <div class="offcanvas offcanvas-start bg-secondary text-bg-dark pb-2" tabindex="-1" id="offcanvasDarkNavbar"
                   aria-labelledby="offcanvasDarkNavbarLabel">
                   <div class="offcanvas-header">
                         <h5 class="offcanvas-title " id="offcanvasDarkNavbarLabel">Menu</h5>
@@ -102,15 +102,16 @@
 
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
                               aria-label="Close"></button>
-                  </div> -->
-<!-- <div class="offcanvas-body bg-secondary">
+                  </div>
+                  <div class="offcanvas-body bg-secondary">
                         <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
                               <li class="nav-item">
                                     <a class="nav-link active" aria-current="page" href="index.html"><img
                                                 style="margin-right: 8px;" src="./images/home.png" height="32">Home</a>
                               </li>
                               <li class="nav-item">
-                                    <a id="taskListNav" class="nav-link" href="javascript:void(0);" onclick="toggleTaskList()"><img style="margin-right: 8px;"
+                                    <a id="taskListNav" class="nav-link" href="javascript:void(0);"
+                                          onclick="toggleTaskList()"><img style="margin-right: 8px;"
                                                 src="./images/to-do-list.png" height="24">Task List</a>
                               </li>
 
@@ -120,14 +121,15 @@
                                                 height="24">Leaderboard</a>
                               </li>
                               <li class="nav-item">
-                                    <a id="settingsButton" class="nav-link" href="settings.html"><img style="margin-right: 8px;"
-                                                src="./images/settings.png" height="24">Settings</a>
+                                    <a id="settingsButton" class="nav-link" href="settings.html"><img
+                                                style="margin-right: 8px;" src="./images/settings.png"
+                                                height="24">Settings</a>
                               </li>
 
                         </ul>
                         </li>
                         </ul>
-                  </div> -->
-<!-- </div>
+                  </div>
+            </div>
       </div>
-</nav> -->
+</nav>
