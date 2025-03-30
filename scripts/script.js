@@ -379,6 +379,45 @@ if (textarea) {
 
 }
 
+function removeTask(checkbox) {
+    const taskElement = checkbox.closest(".task-item");
+    const taskId = taskElement.getAttribute("data-task-id");
+    const user = firebase.auth().currentUser;
+    if (!user || !taskId) return;
+
+    const fromCollection = checkbox.checked ? "tasks" : "taskHistory";
+    const toCollection = checkbox.checked ? "taskHistory" : "tasks";
+
+    // Get the task data first
+    db.collection("users").doc(user.uid).collection(fromCollection).doc(taskId).get()
+        .then((doc) => {
+            if (!doc.exists) throw new Error("Task not found");
+            const taskData = doc.data();
+            taskData.completed = checkbox.checked;
+
+            if (checkbox.checked) {
+                taskData.completedAt = firebase.firestore.FieldValue.serverTimestamp();
+            } else {
+                delete taskData.completedAt;
+            }
+
+            // Add to new collection
+            return db.collection("users").doc(user.uid).collection(toCollection).doc(taskId).set(taskData);
+        })
+        .then(() => {
+            // Delete from original collection
+            return db.collection("users").doc(user.uid).collection(fromCollection).doc(taskId).delete();
+        })
+        .then(() => {
+            // Reload the task list to reflect changes
+            loadTasks();
+        })
+        .catch((error) => {
+            console.error("Error toggling task completion:", error);
+        });
+}
+
+
 
 
 function deleteTask(taskId, isCompleted) {
