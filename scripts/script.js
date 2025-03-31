@@ -89,14 +89,14 @@ function toggleTaskList() {
     var taskList = document.getElementById('taskList');
     taskList.classList.toggle('active');
 
-     // Close the offcanvas menu if open
-  const offcanvas = document.querySelector('.offcanvas.show');
-  if (offcanvas) {
-    const instance = bootstrap.Offcanvas.getInstance(offcanvas);
-    if (instance) {
-      instance.hide();
+    // Close the offcanvas menu if open
+    const offcanvas = document.querySelector('.offcanvas.show');
+    if (offcanvas) {
+        const instance = bootstrap.Offcanvas.getInstance(offcanvas);
+        if (instance) {
+            instance.hide();
+        }
     }
-  }
 }
 
 // Star value checker
@@ -106,7 +106,7 @@ function getSelectedStarValue() {
         // Extract the star number from the ID (e.g., "star-3" -> 3)
         return parseInt(selectedStar.id.split('-')[1]);
     }
-    return 1; 
+    return 1;
 
 }
 
@@ -134,25 +134,25 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById('taskForm').reset();
         }
 
-    // logoutButton profile.html
-    const logoutButton = document.getElementById("logoutButton");
+        // logoutButton profile.html
+        const logoutButton = document.getElementById("logoutButton");
 
-    if (logoutButton) {
-        logoutButton.addEventListener("click", function () {
-            firebase.auth().signOut().then(() => {
-                console.log("User signed out.");
-                window.location.href = "login.html"; // Redirect to login page
-            }).catch((error) => {
-                console.error("Error signing out:", error);
+        if (logoutButton) {
+            logoutButton.addEventListener("click", function () {
+                firebase.auth().signOut().then(() => {
+                    console.log("User signed out.");
+                    window.location.href = "login.html"; // Redirect to login page
+                }).catch((error) => {
+                    console.error("Error signing out:", error);
+                });
             });
-        });
-    }
-    
+        }
+
     });
 
 
 
-// Initialize Flatpickr for date-only pickers
+    // Initialize Flatpickr for date-only pickers
     const deadlinePicker = flatpickr("#taskDeadlineInput", {
         enableTime: false,
         dateFormat: "F j, Y",
@@ -209,9 +209,9 @@ document.addEventListener("DOMContentLoaded", function () {
             const task = {
                 name: taskName,
                 description: taskDescription,
-                deadline: taskDeadline, 
+                deadline: taskDeadline,
                 deadlineTime: taskDeadlineTime,
-                reminder: taskReminder, 
+                reminder: taskReminder,
                 reminderTime: taskReminderTime,
                 completed: false,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -224,27 +224,27 @@ document.addEventListener("DOMContentLoaded", function () {
             if (user) {
                 // Add task to Firestore
                 db.collection("users").doc(user.uid).collection("tasks").add(task)
-                .then((docRef) => {
-                    return docRef.get().then(doc => {
-                      // If createdAt hasn't populated yet, wait and retry once
-                      if (!doc.exists || !doc.data().createdAt) {
-                        return new Promise(resolve => setTimeout(resolve, 500)).then(() => docRef.get());
-                      }
-                      return doc;
-                    });
-                  })
-                  .then((doc) => {
-                    if (doc.exists) {
-                      const savedTask = doc.data();
-                      addTaskToUI(doc.id, savedTask, false);
-                    }
+                    .then((docRef) => {
+                        return docRef.get().then(doc => {
+                            // If createdAt hasn't populated yet, wait and retry once
+                            if (!doc.exists || !doc.data().createdAt) {
+                                return new Promise(resolve => setTimeout(resolve, 500)).then(() => docRef.get());
+                            }
+                            return doc;
+                        });
+                    })
+                    .then((doc) => {
+                        if (doc.exists) {
+                            const savedTask = doc.data();
+                            addTaskToUI(doc.id, savedTask, false);
+                        }
 
                         document.getElementById('taskForm').reset();
-                        document.getElementById('taskDeadlineInput').value = ''; 
+                        document.getElementById('taskDeadlineInput').value = '';
                         document.getElementById('taskDeadlineInput').style.display = 'none';
                         document.getElementById('taskReminderInput').value = '';
                         document.getElementById('taskReminderInput').style.display = 'none';
-                        
+
 
                         // Close the modal
                         var modal = new bootstrap.Modal(document.getElementById('exampleModal'));
@@ -263,7 +263,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var exampleModalEl = document.getElementById('exampleModal');
     exampleModalEl.addEventListener('hidden.bs.modal', function () {
         document.getElementById('taskForm').reset();
-        document.getElementById('taskDeadlineInput').value = ''; 
+        document.getElementById('taskDeadlineInput').value = '';
         document.getElementById('taskDeadlineInput').style.display = 'none';
         document.getElementById('taskDeadlineTimeInput').value = '';
         document.getElementById('taskReminderTimeInput').value = '';
@@ -310,8 +310,8 @@ function loadTasks() {
 
         // Fetch completed tasks from history
         db.collection("users").doc(user.uid).collection("taskHistory")
-        .orderBy("order", "asc")
-        .get()
+            .orderBy("order", "asc")
+            .get()
             .then((querySnapshot) => {
                 querySnapshot.forEach((doc) => {
                     const taskData = doc.data();
@@ -377,21 +377,59 @@ function addTaskToUI(taskId, taskData, isCompleted) {
     `;
     document.getElementById('tasks').insertAdjacentHTML('beforeend', taskHTML);
 
-    
+
     const insertedTask = document.querySelector(`.task-item[data-task-id="${taskId}"]`);
-const textarea = insertedTask?.querySelector("textarea");
+    const textarea = insertedTask?.querySelector("textarea");
 
-if (textarea) {
-  textarea.style.height = 'auto';
-  textarea.style.height = textarea.scrollHeight + 'px';
+    if (textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
 
-  textarea.addEventListener('input', () => {
-    textarea.style.height = 'auto';
-    textarea.style.height = textarea.scrollHeight + 'px';
-  });
+        textarea.addEventListener('input', () => {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        });
+    }
+
 }
 
-}
+// function removeTask(checkbox) {
+//     const taskElement = checkbox.closest(".task-item");
+//     const taskId = taskElement.getAttribute("data-task-id");
+//     const user = firebase.auth().currentUser;
+//     if (!user || !taskId) return;
+
+//     const fromCollection = checkbox.checked ? "tasks" : "taskHistory";
+//     const toCollection = checkbox.checked ? "taskHistory" : "tasks";
+
+//     // Get the task data first
+//     db.collection("users").doc(user.uid).collection(fromCollection).doc(taskId).get()
+//         .then((doc) => {
+//             if (!doc.exists) throw new Error("Task not found");
+//             const taskData = doc.data();
+//             taskData.completed = checkbox.checked;
+
+//             if (checkbox.checked) {
+//                 taskData.completedAt = firebase.firestore.FieldValue.serverTimestamp();
+//             } else {
+//                 delete taskData.completedAt;
+//             }
+
+//             // Add to new collection
+//             return db.collection("users").doc(user.uid).collection(toCollection).doc(taskId).set(taskData);
+//         })
+//         .then(() => {
+//             // Delete from original collection
+//             return db.collection("users").doc(user.uid).collection(fromCollection).doc(taskId).delete();
+//         })
+//         .then(() => {
+//             // Reload the task list to reflect changes
+//             loadTasks();
+//         })
+//         .catch((error) => {
+//             console.error("Error toggling task completion:", error);
+//         });
+// }
 
 function removeTask(checkbox) {
     const taskElement = checkbox.closest(".task-item");
@@ -411,10 +449,21 @@ function removeTask(checkbox) {
 
             if (checkbox.checked) {
                 taskData.completedAt = firebase.firestore.FieldValue.serverTimestamp();
-            } else {
-                delete taskData.completedAt;
-            }
 
+                // Only update score if the task is being marked as completed
+                const taskValue = taskData.value || 1;
+                return db.collection("users").doc(user.uid).update({
+                    StatPoints: firebase.firestore.FieldValue.increment(taskValue)
+                }).then(() => taskData); // Return taskData for the next step
+            } else {
+                // If unchecking, subtract the points
+                const taskValue = taskData.value || 1;
+                return db.collection("users").doc(user.uid).update({
+                    StatPoints: firebase.firestore.FieldValue.increment(-taskValue)
+                }).then(() => taskData); // Return taskData for the next step
+            }
+        })
+        .then((taskData) => {
             // Add to new collection
             return db.collection("users").doc(user.uid).collection(toCollection).doc(taskId).set(taskData);
         })
@@ -430,7 +479,106 @@ function removeTask(checkbox) {
             console.error("Error toggling task completion:", error);
         });
 }
+// function removeTask(checkbox) {
+//     console.log("removeTask triggered with checkbox:", checkbox);
 
+//     const taskItem = checkbox.parentElement.parentElement;
+//     console.log("taskItem:", taskItem);
+//     const taskId = taskItem.getAttribute('data-task-id');
+//     console.log("taskId:", taskId);
+
+//     const user = firebase.auth().currentUser;
+//     console.log("user:", user ? user.uid : "No user");
+//     if (!user || !taskId) {
+//         console.error("No user or task ID available - user:", user, "taskId:", taskId);
+//         return;
+//     }
+//     if (checkbox.checked) {
+//         // ✅ MARK AS COMPLETE
+//         console.log(`Attempting to complete task ${taskId} for user ${user.uid}`);
+
+//         db.collection("users").doc(user.uid).collection("tasks").doc(taskId).get()
+//             .then((doc) => {
+//                 if (!doc.exists) {
+//                     console.error(`Task ${taskId} does not exist`);
+//                     return;
+//                 }
+//                 const taskData = doc.data();
+//                 console.log("Task data:", taskData);
+
+//                 const completedTask = {
+//                     ...taskData,
+//                     completed: true,
+//                     completedAt: firebase.firestore.FieldValue.serverTimestamp()
+//                 };
+
+//                 return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).set(completedTask)
+//                     .then(() => {
+//                         console.log(`Task ${taskId} moved to history`);
+//                         return db.collection("users").doc(user.uid).update({
+//                             StatPoints: firebase.firestore.FieldValue.increment(taskData.value || 1)
+//                         });
+//                     })
+//                     .then(() => {
+//                         console.log(`StatPoints incremented by ${taskData.value || 1}`);
+//                         return db.collection("users").doc(user.uid).collection("tasks").doc(taskId).delete();
+//                     })
+//                     .then(() => {
+//                         console.log(`Task ${taskId} deleted from active tasks`);
+//                         taskItem.remove();
+//                         return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).get();
+//                     })
+//                     .then((doc) => {
+//                         if (doc.exists) {
+//                             console.log("Re-fetched task from history:", doc.data());
+//                             addTaskToUI(taskId, doc.data(), true);
+//                         }
+//                     });
+//             })
+//             .catch((error) => {
+//                 console.error("Error in task completion process:", error);
+//             });
+//     } else {
+//         // ✅ MOVE BACK TO ACTIVE TASKS
+//         console.log(`Attempting to un-complete task ${taskId}`);
+
+//         db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).get()
+//             .then((doc) => {
+//                 if (!doc.exists) {
+//                     console.error(`Task ${taskId} not found in history`);
+//                     return;
+//                 }
+
+//                 const taskData = doc.data();
+//                 const activeTask = {
+//                     ...taskData,
+//                     completed: false,
+//                     completedAt: null
+//                 };
+
+//                 return db.collection("users").doc(user.uid).collection("tasks").doc(taskId).set(activeTask)
+//                     .then(() => {
+//                         console.log(`Task ${taskId} moved back to active tasks`);
+//                         // Decrement StatPoints by the same value
+//                         return db.collection("users").doc(user.uid).update({
+//                             StatPoints: firebase.firestore.FieldValue.increment(-(taskData.value || 1))
+//                         });
+//                     })
+//                     .then(() => {
+//                         console.log(`StatPoints decremented by ${taskData.value || 1}`);
+//                         return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).delete();
+//                     })
+//                     .then(() => {
+//                         console.log(`Task ${taskId} removed from history`);
+//                         if (existingTask) existingTask.remove();
+//                         addTaskToUI(taskId, activeTask, false);
+//                     });
+//             })
+//             .catch((error) => {
+//                 console.error("Error moving task back to active:", error);
+//             });
+//     }
+// }
 
 
 
@@ -463,77 +611,77 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
     });
-        // Toggle all task details
-        const toggleAllBtn = document.getElementById('toggleAllDetailsButton');
-        let showingAll = false;
-    
-        if (toggleAllBtn) {
-            toggleAllBtn.addEventListener('click', function () {
-                const details = document.querySelectorAll('.task-details');
-                showingAll = !showingAll;
-                details.forEach(detail => {
-                    detail.style.display = showingAll ? 'block' : 'none';
-                });
-                toggleAllBtn.textContent = showingAll ? 'Hide All Details' : 'Show All Details';
+    // Toggle all task details
+    const toggleAllBtn = document.getElementById('toggleAllDetailsButton');
+    let showingAll = false;
+
+    if (toggleAllBtn) {
+        toggleAllBtn.addEventListener('click', function () {
+            const details = document.querySelectorAll('.task-details');
+            showingAll = !showingAll;
+            details.forEach(detail => {
+                detail.style.display = showingAll ? 'block' : 'none';
             });
-        }
+            toggleAllBtn.textContent = showingAll ? 'Hide All Details' : 'Show All Details';
+        });
+    }
 
-        const deleteAllBtn = document.getElementById('deleteAllTasksButton');
-        if (deleteAllBtn) {
-            deleteAllBtn.addEventListener('click', function () {
-                if (!confirm("Are you sure you want to permanently delete ALL active and completed tasks?")) return;
+    const deleteAllBtn = document.getElementById('deleteAllTasksButton');
+    if (deleteAllBtn) {
+        deleteAllBtn.addEventListener('click', function () {
+            if (!confirm("Are you sure you want to permanently delete ALL active and completed tasks?")) return;
 
-                const user = firebase.auth().currentUser;
-                if (!user) return;
+            const user = firebase.auth().currentUser;
+            if (!user) return;
 
-                const userDoc = db.collection("users").doc(user.uid);
-                const tasksRef = userDoc.collection("tasks");
-                const historyRef = userDoc.collection("taskHistory");
+            const userDoc = db.collection("users").doc(user.uid);
+            const tasksRef = userDoc.collection("tasks");
+            const historyRef = userDoc.collection("taskHistory");
 
-                const deleteFromCollection = (ref) => {
-                    return ref.get().then(snapshot => {
-                        const deletions = snapshot.docs.map(doc => ref.doc(doc.id).delete());
-                        return Promise.all(deletions);
-                    });
-                };
-
-                Promise.all([
-                    deleteFromCollection(tasksRef),
-                    deleteFromCollection(historyRef)
-                ]).then(() => {
-                    document.getElementById('tasks').innerHTML = '';
-                    console.log("All active and completed tasks deleted.");
-                }).catch((error) => {
-                    console.error("Error deleting all tasks:", error);
+            const deleteFromCollection = (ref) => {
+                return ref.get().then(snapshot => {
+                    const deletions = snapshot.docs.map(doc => ref.doc(doc.id).delete());
+                    return Promise.all(deletions);
                 });
+            };
+
+            Promise.all([
+                deleteFromCollection(tasksRef),
+                deleteFromCollection(historyRef)
+            ]).then(() => {
+                document.getElementById('tasks').innerHTML = '';
+                console.log("All active and completed tasks deleted.");
+            }).catch((error) => {
+                console.error("Error deleting all tasks:", error);
             });
-        }
-        
-        document.getElementById('tasks').addEventListener('blur', function (event) {
-            if (event.target.classList.contains('task-name-input')) {
-                const newName = event.target.value.trim();
-                const taskId = event.target.getAttribute('data-task-id');
-                const isCompleted = event.target.classList.contains('completed-task');
-                const collection = isCompleted ? 'taskHistory' : 'tasks';
-        
-                const user = firebase.auth().currentUser;
-                if (user && taskId && newName) {
-                    db.collection("users").doc(user.uid).collection(collection).doc(taskId).update({
-                        name: newName
-                    }).then(() => {
-                        console.log(`Task ${taskId} updated in Firestore.`);
-                        const feedback = document.getElementById('taskFeedback');
-                        if (feedback) {
-                            feedback.classList.remove('d-none');
-                            setTimeout(() => feedback.classList.add('d-none'), 1500);
-                        }
-                    }).catch(error => {
-                        console.error("Error updating task name:", error);
-                    });
-                }
+        });
+    }
+
+    document.getElementById('tasks').addEventListener('blur', function (event) {
+        if (event.target.classList.contains('task-name-input')) {
+            const newName = event.target.value.trim();
+            const taskId = event.target.getAttribute('data-task-id');
+            const isCompleted = event.target.classList.contains('completed-task');
+            const collection = isCompleted ? 'taskHistory' : 'tasks';
+
+            const user = firebase.auth().currentUser;
+            if (user && taskId && newName) {
+                db.collection("users").doc(user.uid).collection(collection).doc(taskId).update({
+                    name: newName
+                }).then(() => {
+                    console.log(`Task ${taskId} updated in Firestore.`);
+                    const feedback = document.getElementById('taskFeedback');
+                    if (feedback) {
+                        feedback.classList.remove('d-none');
+                        setTimeout(() => feedback.classList.add('d-none'), 1500);
+                    }
+                }).catch(error => {
+                    console.error("Error updating task name:", error);
+                });
             }
-        }, true);  // useCapture = true to ensure blur bubbles up
-        
+        }
+    }, true);  // useCapture = true to ensure blur bubbles up
+
 });
 
 //************************************************************************************************ */
@@ -543,178 +691,178 @@ document.addEventListener("DOMContentLoaded", function () {
 function createStudySession() {
     const user = firebase.auth().currentUser;
 
-// Check if user already has an active session
-db.collection("users").doc(user.uid).get()
-    .then((doc) => {
-        if (doc.exists && doc.data().activeSessionId) {
-            // User already has an active session, join that session
-            const existingSessionId = doc.data().activeSessionId;
-            joinStudySession(existingSessionId);
-        } else {
-            // Create a new session
-            const newSessionRef = db.collection("studySessions").doc();
-            
-            const sessionData = {
-                host: user.uid,
-                hostName: user.displayName || 'Anonymous',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                status: 'active',
-                participants: [user.uid]
-            };
+    // Check if user already has an active session
+    db.collection("users").doc(user.uid).get()
+        .then((doc) => {
+            if (doc.exists && doc.data().activeSessionId) {
+                // User already has an active session, join that session
+                const existingSessionId = doc.data().activeSessionId;
+                joinStudySession(existingSessionId);
+            } else {
+                // Create a new session
+                const newSessionRef = db.collection("studySessions").doc();
 
-            newSessionRef.set(sessionData)
-                .then(() => {
-                    // Store the session ID for current user in both localStorage and Firestore
-                    localStorage.setItem('currentSessionId', newSessionRef.id);
-                    
-                    // Update user document with active session
-                    return db.collection("users").doc(user.uid).set({
-                        activeSessionId: newSessionRef.id
-                    }, { merge: true });
-                })
-                .then(() => {
-                    // Start listening to session changes
-                    listenToSessionChanges(newSessionRef.id);
-                    
-                    console.log('Study session created with ID: ', newSessionRef.id);
-                })
-                .catch((error) => {
-                    console.error("Error creating study session: ", error);
-                });
-        }
-    })
-    .catch((error) => {
-        console.error("Error checking existing session: ", error);
-    });
+                const sessionData = {
+                    host: user.uid,
+                    hostName: user.displayName || 'Anonymous',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: 'active',
+                    participants: [user.uid]
+                };
 
-}function joinStudySession(sessionId) {
+                newSessionRef.set(sessionData)
+                    .then(() => {
+                        // Store the session ID for current user in both localStorage and Firestore
+                        localStorage.setItem('currentSessionId', newSessionRef.id);
+
+                        // Update user document with active session
+                        return db.collection("users").doc(user.uid).set({
+                            activeSessionId: newSessionRef.id
+                        }, { merge: true });
+                    })
+                    .then(() => {
+                        // Start listening to session changes
+                        listenToSessionChanges(newSessionRef.id);
+
+                        console.log('Study session created with ID: ', newSessionRef.id);
+                    })
+                    .catch((error) => {
+                        console.error("Error creating study session: ", error);
+                    });
+            }
+        })
+        .catch((error) => {
+            console.error("Error checking existing session: ", error);
+        });
+
+} function joinStudySession(sessionId) {
     const user = firebase.auth().currentUser;
 
-// Use a transaction to ensure atomic updates
-return db.runTransaction((transaction) => {
-    const sessionRef = db.collection("studySessions").doc(sessionId);
-    const userRef = db.collection("users").doc(user.uid);
+    // Use a transaction to ensure atomic updates
+    return db.runTransaction((transaction) => {
+        const sessionRef = db.collection("studySessions").doc(sessionId);
+        const userRef = db.collection("users").doc(user.uid);
 
-    return transaction.get(sessionRef).then((sessionDoc) => {
-        if (!sessionDoc.exists) {
-            throw new Error('Session does not exist');
-        }
+        return transaction.get(sessionRef).then((sessionDoc) => {
+            if (!sessionDoc.exists) {
+                throw new Error('Session does not exist');
+            }
 
-        const sessionData = sessionDoc.data();
-        const participants = sessionData.participants || [];
-        
-        // Ensure user is in the participants list
-        if (!participants.includes(user.uid)) {
-            transaction.update(sessionRef, {
-                participants: firebase.firestore.FieldValue.arrayUnion(user.uid)
+            const sessionData = sessionDoc.data();
+            const participants = sessionData.participants || [];
+
+            // Ensure user is in the participants list
+            if (!participants.includes(user.uid)) {
+                transaction.update(sessionRef, {
+                    participants: firebase.firestore.FieldValue.arrayUnion(user.uid)
+                });
+            }
+
+            // Remove any existing active session
+            transaction.update(userRef, {
+                activeSessionId: firebase.firestore.FieldValue.delete()
             });
-        }
 
-        // Remove any existing active session
-        transaction.update(userRef, {
-            activeSessionId: firebase.firestore.FieldValue.delete()
+            // Set the new session as active
+            transaction.update(userRef, {
+                activeSessionId: sessionId
+            });
+
+            return sessionId;
         });
+    })
+        .then((sessionId) => {
+            // Store in localStorage
+            localStorage.setItem('currentSessionId', sessionId);
 
-        // Set the new session as active
-        transaction.update(userRef, {
-            activeSessionId: sessionId
+            // Start listeners
+            listenToSessionChanges(sessionId);
+            loadChatMessages(sessionId);
+
+            console.log('Joined/Rejoined study session:', sessionId);
+
+            return sessionId;
+        })
+        .catch((error) => {
+            console.error("Error joining study session:", error);
+            throw error;
         });
-
-        return sessionId;
-    });
-})
-.then((sessionId) => {
-    // Store in localStorage
-    localStorage.setItem('currentSessionId', sessionId);
-    
-    // Start listeners
-    listenToSessionChanges(sessionId);
-    loadChatMessages(sessionId);
-    
-    console.log('Joined/Rejoined study session:', sessionId);
-    
-    return sessionId;
-})
-.catch((error) => {
-    console.error("Error joining study session:", error);
-    throw error;
-});
 
 }
 function endStudySession() {
     const user = firebase.auth().currentUser;
     const currentSessionId = localStorage.getItem('currentSessionId');
 
-if (!user || !currentSessionId) {
-    console.error("No user or session ID found");
-    return;
-}
+    if (!user || !currentSessionId) {
+        console.error("No user or session ID found");
+        return;
+    }
 
-if (justJoined) {
-    console.log(`User ${user.uid} just joined, skipping endStudySession`);
-    return;
-}
+    if (justJoined) {
+        console.log(`User ${user.uid} just joined, skipping endStudySession`);
+        return;
+    }
 
-db.collection("studySessions").doc(currentSessionId).get()
-    .then((doc) => {
-        if (doc.exists) {
-            const sessionData = doc.data();
-            const participants = sessionData.participants || [];
-            const updatedParticipants = participants.filter(uid => uid !== user.uid);
+    db.collection("studySessions").doc(currentSessionId).get()
+        .then((doc) => {
+            if (doc.exists) {
+                const sessionData = doc.data();
+                const participants = sessionData.participants || [];
+                const updatedParticipants = participants.filter(uid => uid !== user.uid);
 
-            const notification = {
-                type: 'user_left',
-                message: `${user.displayName || 'Anonymous'} has left the session`,
-                sessionId: currentSessionId,
-                timestamp: new Date().toISOString(),
-                except: user.uid
-            };
-            
-            return db.collection("studySessions").doc(currentSessionId).update({
-                participants: updatedParticipants,
-                leftUsers: firebase.firestore.FieldValue.arrayUnion(user.uid)
-            }).then(() => {
-                return notifyParticipants(currentSessionId, notification);
-            }).then(() => {
-                return currentSessionId;
-            });
-        }
-        throw new Error("Session does not exist");
-    })
-    .then((sessionId) => {
-        return db.collection("users").doc(user.uid).update({
-            activeSessionId: firebase.firestore.FieldValue.delete()
-        }).then(() => sessionId);
-    })
-    .then((sessionId) => {
-        localStorage.removeItem('currentSessionId');
-        console.log('User left the study session');
-        window.location.href='main.html';
-        // Stop all listeners
-        if (sessionListenerUnsubscribe) {
-            sessionListenerUnsubscribe();
-            sessionListenerUnsubscribe = null;
-        }
-        if (chatListenerUnsubscribe) {
-            chatListenerUnsubscribe();
-            chatListenerUnsubscribe = null;
-        }
+                const notification = {
+                    type: 'user_left',
+                    message: `${user.displayName || 'Anonymous'} has left the session`,
+                    sessionId: currentSessionId,
+                    timestamp: new Date().toISOString(),
+                    except: user.uid
+                };
 
-        document.getElementById("session").innerText = "Not started";
-        const messagesContainer = document.getElementById('chatMessages');
-        if (messagesContainer) {
-            messagesContainer.innerHTML = '';
-        }
-        const chatInput = document.getElementById('chatMessageInput');
-        const sendButton = document.getElementById('sendChatButton');
-        if (chatInput) chatInput.disabled = true;
-        if (sendButton) sendButton.disabled = true;
-    })
-    .catch((error) => {
-        console.error("Error ending study session:", error);
-    });
+                return db.collection("studySessions").doc(currentSessionId).update({
+                    participants: updatedParticipants,
+                    leftUsers: firebase.firestore.FieldValue.arrayUnion(user.uid)
+                }).then(() => {
+                    return notifyParticipants(currentSessionId, notification);
+                }).then(() => {
+                    return currentSessionId;
+                });
+            }
+            throw new Error("Session does not exist");
+        })
+        .then((sessionId) => {
+            return db.collection("users").doc(user.uid).update({
+                activeSessionId: firebase.firestore.FieldValue.delete()
+            }).then(() => sessionId);
+        })
+        .then((sessionId) => {
+            localStorage.removeItem('currentSessionId');
+            console.log('User left the study session');
+            window.location.href = 'main.html';
+            // Stop all listeners
+            if (sessionListenerUnsubscribe) {
+                sessionListenerUnsubscribe();
+                sessionListenerUnsubscribe = null;
+            }
+            if (chatListenerUnsubscribe) {
+                chatListenerUnsubscribe();
+                chatListenerUnsubscribe = null;
+            }
 
-}function listenToSessionChanges(sessionId) {
+            document.getElementById("session").innerText = "Not started";
+            const messagesContainer = document.getElementById('chatMessages');
+            if (messagesContainer) {
+                messagesContainer.innerHTML = '';
+            }
+            const chatInput = document.getElementById('chatMessageInput');
+            const sendButton = document.getElementById('sendChatButton');
+            if (chatInput) chatInput.disabled = true;
+            if (sendButton) sendButton.disabled = true;
+        })
+        .catch((error) => {
+            console.error("Error ending study session:", error);
+        });
+
+} function listenToSessionChanges(sessionId) {
     const user = firebase.auth().currentUser;
     if (!user) return;
 
@@ -731,7 +879,7 @@ db.collection("studySessions").doc(currentSessionId).get()
             if (doc.exists) {
                 const sessionData = doc.data();
                 const participants = sessionData.participants || [];
-                
+
                 // Clean up previous participant listeners if they exist
                 if (participantsCleanup) {
                     participantsCleanup();
@@ -854,132 +1002,132 @@ function sendMessage() {
     const messageInput = document.getElementById('chatMessageInput');
     const message = messageInput.value.trim();
 
-if (message) {
-    const user = firebase.auth().currentUser;
-    const currentSessionId = localStorage.getItem('currentSessionId');
+    if (message) {
+        const user = firebase.auth().currentUser;
+        const currentSessionId = localStorage.getItem('currentSessionId');
 
-    // Check if user is still in the session
-    db.collection("studySessions").doc(currentSessionId).get()
+        // Check if user is still in the session
+        db.collection("studySessions").doc(currentSessionId).get()
+            .then((doc) => {
+                if (doc.exists) {
+                    const sessionData = doc.data();
+                    const participants = sessionData.participants || [];
+
+                    if (participants.includes(user.uid)) {
+                        // User is still in the session, send message
+                        const chatMessage = {
+                            text: message,
+                            sender: user.uid,
+                            senderName: user.displayName || 'Anonymous',
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                            sessionId: currentSessionId
+                        };
+
+                        return db.collection("chatMessages").add(chatMessage);
+                    } else {
+                        throw new Error("Not a participant of this session");
+                    }
+                }
+                throw new Error("Session does not exist");
+            })
+            .then(() => {
+                messageInput.value = ''; // Clear input after sending
+            })
+            .catch((error) => {
+                console.error("Error sending message: ", error);
+                alert('Cannot send message. You may have left the session.');
+
+                // Disable chat input
+                messageInput.disabled = true;
+                const sendButton = document.getElementById('sendChatButton');
+                if (sendButton) sendButton.disabled = true;
+            });
+    }
+
+} function loadChatMessages(sessionId) {
+    const user = firebase.auth().currentUser;
+    const messagesContainer = document.getElementById('chatMessages');
+
+    if (!messagesContainer || !user) return;
+
+    // Clear existing messages
+    messagesContainer.innerHTML = '';
+
+    // Stop any existing chat listener
+    if (chatListenerUnsubscribe) {
+        chatListenerUnsubscribe();
+        chatListenerUnsubscribe = null;
+    }
+
+    // Check if user is still a participant
+    db.collection("studySessions").doc(sessionId).get()
         .then((doc) => {
             if (doc.exists) {
                 const sessionData = doc.data();
                 const participants = sessionData.participants || [];
-                
-                if (participants.includes(user.uid)) {
-                    // User is still in the session, send message
-                    const chatMessage = {
-                        text: message,
-                        sender: user.uid,
-                        senderName: user.displayName || 'Anonymous',
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                        sessionId: currentSessionId
-                    };
 
-                    return db.collection("chatMessages").add(chatMessage);
-                } else {
-                    throw new Error("Not a participant of this session");
+                if (!participants.includes(user.uid)) {
+                    messagesContainer.innerHTML = '<p>You are no longer in this session.</p>';
+                    const chatInput = document.getElementById('chatMessageInput');
+                    const sendButton = document.getElementById('sendChatButton');
+                    if (chatInput) chatInput.disabled = true;
+                    if (sendButton) sendButton.disabled = true;
+                    console.log(`User ${user.uid} not a participant in session ${sessionId}`);
+                    return;
                 }
+
+                // Real-time listener for chat messages
+                chatListenerUnsubscribe = db.collection("chatMessages")
+                    .where("sessionId", "==", sessionId)
+                    .onSnapshot((querySnapshot) => {
+                        messagesContainer.innerHTML = '';
+                        const sortedMessages = querySnapshot.docs
+                            .map(doc => doc.data())
+                            .sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+
+                        sortedMessages.forEach((messageData) => {
+                            addMessageToUI(messageData);
+                        });
+                        console.log(`Chat updated for session ${sessionId}`);
+                    }, (error) => {
+                        console.error("Error in chat messages snapshot: ", error);
+                    });
+            } else {
+                console.log(`Session ${sessionId} does not exist`);
             }
-            throw new Error("Session does not exist");
-        })
-        .then(() => {
-            messageInput.value = ''; // Clear input after sending
         })
         .catch((error) => {
-            console.error("Error sending message: ", error);
-            alert('Cannot send message. You may have left the session.');
-            
-            // Disable chat input
-            messageInput.disabled = true;
-            const sendButton = document.getElementById('sendChatButton');
-            if (sendButton) sendButton.disabled = true;
+            console.error("Error checking session for chat: ", error);
         });
-}
 
-}function loadChatMessages(sessionId) {
-    const user = firebase.auth().currentUser;
-    const messagesContainer = document.getElementById('chatMessages');
-
-if (!messagesContainer || !user) return;
-
-// Clear existing messages
-messagesContainer.innerHTML = ''; 
-
-// Stop any existing chat listener
-if (chatListenerUnsubscribe) {
-    chatListenerUnsubscribe();
-    chatListenerUnsubscribe = null;
-}
-
-// Check if user is still a participant
-db.collection("studySessions").doc(sessionId).get()
-    .then((doc) => {
-        if (doc.exists) {
-            const sessionData = doc.data();
-            const participants = sessionData.participants || [];
-            
-            if (!participants.includes(user.uid)) {
-                messagesContainer.innerHTML = '<p>You are no longer in this session.</p>';
-                const chatInput = document.getElementById('chatMessageInput');
-                const sendButton = document.getElementById('sendChatButton');
-                if (chatInput) chatInput.disabled = true;
-                if (sendButton) sendButton.disabled = true;
-                console.log(`User ${user.uid} not a participant in session ${sessionId}`);
-                return;
-            }
-
-            // Real-time listener for chat messages
-            chatListenerUnsubscribe = db.collection("chatMessages")
-                .where("sessionId", "==", sessionId)
-                .onSnapshot((querySnapshot) => {
-                    messagesContainer.innerHTML = '';
-                    const sortedMessages = querySnapshot.docs
-                        .map(doc => doc.data())
-                        .sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
-
-                    sortedMessages.forEach((messageData) => {
-                        addMessageToUI(messageData);
-                    });
-                    console.log(`Chat updated for session ${sessionId}`);
-                }, (error) => {
-                    console.error("Error in chat messages snapshot: ", error);
-                });
-        } else {
-            console.log(`Session ${sessionId} does not exist`);
-        }
-    })
-    .catch((error) => {
-        console.error("Error checking session for chat: ", error);
-    });
-
-}function addMessageToUI(messageData) {
+} function addMessageToUI(messageData) {
     const messagesContainer = document.getElementById('chatMessages');
     const currentUser = firebase.auth().currentUser;
 
-if (!messagesContainer || !currentUser) return;
+    if (!messagesContainer || !currentUser) return;
 
-const messageDiv = document.createElement('div');
-messageDiv.classList.add('chat-message');
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('chat-message');
 
-// Differentiate between sent and received messages
-if (messageData.sender === currentUser.uid) {
-    messageDiv.classList.add('sent-message');
-} else {
-    messageDiv.classList.add('received-message');
-}
+    // Differentiate between sent and received messages
+    if (messageData.sender === currentUser.uid) {
+        messageDiv.classList.add('sent-message');
+    } else {
+        messageDiv.classList.add('received-message');
+    }
 
-messageDiv.innerHTML = `
+    messageDiv.innerHTML = `
     <strong>${messageData.senderName}</strong>
     <p>${messageData.text}</p>
     <small>${formatTimestamp(messageData.timestamp)}</small>
 `;
 
-messagesContainer.appendChild(messageDiv);
+    messagesContainer.appendChild(messageDiv);
 
-// Auto-scroll to bottom
-messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    // Auto-scroll to bottom
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-}function formatTimestamp(timestamp) {
+} function formatTimestamp(timestamp) {
     if (!timestamp) return '';
     return new Date(timestamp.seconds * 1000).toLocaleTimeString();
 }// Getting current session ID
@@ -1001,41 +1149,41 @@ firebase.auth().onAuthStateChanged((user) => {
     if (user) {
         updateUserStatus(true);
 
-    // Remove any lingering session first
-    db.collection("users").doc(user.uid).update({
-        activeSessionId: firebase.firestore.FieldValue.delete()
-    })
-    .then(() => {
-        const sessionId = localStorage.getItem('currentSessionId');
-        
-        if (sessionId) {
-            // Try to join the existing session
-            return db.collection("studySessions").doc(sessionId).get()
-                .then((doc) => {
-                    if (doc.exists && doc.data().participants.includes(user.uid)) {
-                        return joinStudySession(sessionId);
-                    } else {
-                        // Invalid session, create a new one
-                        localStorage.removeItem('currentSessionId');
-                        return createStudySession();
-                    }
-                });
-        } else {
-            // No existing session, create a new one
-            return createStudySession();
-        }
-    })
-    .then(() => {
-        // Always listen for notifications
-        listenForNotifications();
-    })
-    .catch((error) => {
-        console.error("Error during authentication state change:", error);
-        createStudySession();
-    });
-} else {
-    window.location.href = 'login.html';
-}
+        // Remove any lingering session first
+        db.collection("users").doc(user.uid).update({
+            activeSessionId: firebase.firestore.FieldValue.delete()
+        })
+            .then(() => {
+                const sessionId = localStorage.getItem('currentSessionId');
+
+                if (sessionId) {
+                    // Try to join the existing session
+                    return db.collection("studySessions").doc(sessionId).get()
+                        .then((doc) => {
+                            if (doc.exists && doc.data().participants.includes(user.uid)) {
+                                return joinStudySession(sessionId);
+                            } else {
+                                // Invalid session, create a new one
+                                localStorage.removeItem('currentSessionId');
+                                return createStudySession();
+                            }
+                        });
+                } else {
+                    // No existing session, create a new one
+                    return createStudySession();
+                }
+            })
+            .then(() => {
+                // Always listen for notifications
+                listenForNotifications();
+            })
+            .catch((error) => {
+                console.error("Error during authentication state change:", error);
+                createStudySession();
+            });
+    } else {
+        window.location.href = 'login.html';
+    }
 
 });
 // Function to toggle chat list (similar to task list toggle)
@@ -1090,28 +1238,28 @@ function inviteUserToSession(invitedUserId) {
             return currentSessionId;
         });
     })
-    .then((sessionId) => {
-        if (sessionId) {
-            // Create session invite notification
-            return createSessionNotification(invitedUserId, 'session_invite');
-        }
-    })
-    .then(() => {
-        const alertBox = document.getElementById("inviteSuccessAlert");
-        if (alertBox) {
-            alertBox.style.display = "block";
-            setTimeout(() => {
-                alertBox.style.display = "none";
-            }, 3000); // hides after 3 seconds
-        }
-        toggleUserList();
-        document.getElementById("stopwatchContainer").style.display = "block";
-        document.getElementById("showUsersBtnContainer").style.display = "none";
-    })
-    .catch((error) => {
-        console.error("Error inviting user:", error);
-        alert("Failed to invite user. Please try again.");
-    });
+        .then((sessionId) => {
+            if (sessionId) {
+                // Create session invite notification
+                return createSessionNotification(invitedUserId, 'session_invite');
+            }
+        })
+        .then(() => {
+            const alertBox = document.getElementById("inviteSuccessAlert");
+            if (alertBox) {
+                alertBox.style.display = "block";
+                setTimeout(() => {
+                    alertBox.style.display = "none";
+                }, 3000); // hides after 3 seconds
+            }
+            toggleUserList();
+            document.getElementById("stopwatchContainer").style.display = "block";
+            document.getElementById("showUsersBtnContainer").style.display = "none";
+        })
+        .catch((error) => {
+            console.error("Error inviting user:", error);
+            alert("Failed to invite user. Please try again.");
+        });
 }
 
 function toggleUserList() {
@@ -1126,26 +1274,26 @@ function loadOnlineUsers() {
     const onlineUsersContainer = document.getElementById('onlineUsers');
     if (!onlineUsersContainer) return;
 
-onlineUsersContainer.innerHTML = '<p>Loading users...</p>'; // Loading indicator
+    onlineUsersContainer.innerHTML = '<p>Loading users...</p>'; // Loading indicator
 
-// Fetch all users and filter for online status
-db.collection("users").where("isOnline", "==", true).get()
-    .then((querySnapshot) => {
-        onlineUsersContainer.innerHTML = ''; // Clear loading message
-        if (querySnapshot.empty) {
-            onlineUsersContainer.innerHTML = '<p>No users online</p>';
-            return;
-        }
+    // Fetch all users and filter for online status
+    db.collection("users").where("isOnline", "==", true).get()
+        .then((querySnapshot) => {
+            onlineUsersContainer.innerHTML = ''; // Clear loading message
+            if (querySnapshot.empty) {
+                onlineUsersContainer.innerHTML = '<p>No users online</p>';
+                return;
+            }
 
-        querySnapshot.forEach((doc) => {
-            const userData = doc.data();
-            const userId = doc.id;
-            const currentUser = firebase.auth().currentUser;
+            querySnapshot.forEach((doc) => {
+                const userData = doc.data();
+                const userId = doc.id;
+                const currentUser = firebase.auth().currentUser;
 
-            // Don't show the current user in the list
-            if (userId === currentUser.uid) return;
+                // Don't show the current user in the list
+                if (userId === currentUser.uid) return;
 
-            const userHTML = `
+                const userHTML = `
                 <div class="user-item d-flex justify-content-between align-items-center mb-2" data-user-id="${userId}">
                     <span>${userData.displayName || 'Anonymous'}</span>
                     <button class="btn btn-sm btn-success add-user-btn" onclick="inviteUserToSession('${userId}')">
@@ -1153,27 +1301,27 @@ db.collection("users").where("isOnline", "==", true).get()
                     </button>
                 </div>
             `;
-            onlineUsersContainer.insertAdjacentHTML('beforeend', userHTML);
+                onlineUsersContainer.insertAdjacentHTML('beforeend', userHTML);
+            });
+        })
+        .catch((error) => {
+            console.error("Error loading online users:", error);
+            onlineUsersContainer.innerHTML = '<p>Error loading users</p>';
         });
-    })
-    .catch((error) => {
-        console.error("Error loading online users:", error);
-        onlineUsersContainer.innerHTML = '<p>Error loading users</p>';
-    });
 
 }// Update user online status
 function updateUserStatus(isOnline) {
     const user = firebase.auth().currentUser;
     if (!user) return;
 
-db.collection("users").doc(user.uid).set({
-    isOnline: isOnline,
-    displayName: user.displayName || 'Anonymous', // Ensure displayName is stored
-    lastActive: firebase.firestore.FieldValue.serverTimestamp()
-}, { merge: true })
-.catch((error) => {
-    console.error("Error updating user status:", error);
-});
+    db.collection("users").doc(user.uid).set({
+        isOnline: isOnline,
+        displayName: user.displayName || 'Anonymous', // Ensure displayName is stored
+        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true })
+        .catch((error) => {
+            console.error("Error updating user status:", error);
+        });
 
 }
 // Listen for notifications
@@ -1189,7 +1337,7 @@ function listenForNotifications() {
             // Only show the most recent notification
             if (notifications.length > 0) {
                 const mostRecentNotification = notifications[notifications.length - 1];
-                
+
                 // Only show notification if it's a recent event (within last 30 seconds)
                 const notificationTime = new Date(mostRecentNotification.timestamp);
                 const now = new Date();
@@ -1247,19 +1395,19 @@ function dismissNotification(button, timestamp) {
     const user = firebase.auth().currentUser;
     if (!user) return;
 
-const notificationDiv = button.parentElement;
-if (notificationDiv.parentNode) {
-    notificationDiv.parentNode.removeChild(notificationDiv);
-}
+    const notificationDiv = button.parentElement;
+    if (notificationDiv.parentNode) {
+        notificationDiv.parentNode.removeChild(notificationDiv);
+    }
 
-db.collection("users").doc(user.uid).update({
-    notifications: firebase.firestore.FieldValue.arrayRemove(
-        ...getNotification(user.uid, timestamp)
-    )
-})
-.catch((error) => {
-    console.error("Error removing notification:", error);
-});
+    db.collection("users").doc(user.uid).update({
+        notifications: firebase.firestore.FieldValue.arrayRemove(
+            ...getNotification(user.uid, timestamp)
+        )
+    })
+        .catch((error) => {
+            console.error("Error removing notification:", error);
+        });
 
 }// Helper function to get specific notification to remove
 function getNotification(userId, timestamp) {
@@ -1343,7 +1491,7 @@ function createSessionNotification(invitedUserId, notificationType) {
     };
 
     // Customize message based on notification type
-    switch(notificationType) {
+    switch (notificationType) {
         case 'session_invite':
             notification.message = `You've been summoned for Co-op by ${notification.senderName}!`;
             break;
@@ -1386,7 +1534,7 @@ function notifyParticipants(sessionId, notification) {
             if (doc.exists) {
                 const sessionData = doc.data();
                 const participants = sessionData.participants || [];
-                
+
                 // Create an array of promises for all updates
                 const updatePromises = participants
                     .filter(participantId => participantId !== notification.except)
@@ -1418,22 +1566,22 @@ function calculateLevel(points) {
     let level = 1;
     let fib1 = 0; // Points needed for level 1
     let fib2 = 5; // Points needed for level 2
-    
-    while (points >= fib2) {
-      level++;
-      const nextFib = fib1 + fib2;
-      fib1 = fib2;
-      fib2 = nextFib;
-    }
-    
-    return {
-      currentLevel: level,
-      nextLevelPoints: fib2,
-      pointsNeeded: fib2 - points
-    };
-  }
 
-  document.getElementById('tasks').addEventListener('click', function (event) {
+    while (points >= fib2) {
+        level++;
+        const nextFib = fib1 + fib2;
+        fib1 = fib2;
+        fib2 = nextFib;
+    }
+
+    return {
+        currentLevel: level,
+        nextLevelPoints: fib2,
+        pointsNeeded: fib2 - points
+    };
+}
+
+document.getElementById('tasks').addEventListener('click', function (event) {
     const target = event.target;
 
     if (target.classList.contains('editable-text')) {
@@ -1449,26 +1597,26 @@ function calculateLevel(points) {
             input.type = 'text';
             input.className = 'form-control form-control-sm flatpickr-inline-deadline';
             input.value = currentValue;
-            
+
             target.replaceWith(input);
-        document.body.offsetHeight; // force reflow to ensure input is in the DOM
+            document.body.offsetHeight; // force reflow to ensure input is in the DOM
 
-        flatpickr(input, {
-        enableTime: false,
-        dateFormat: "F j, Y",
-        defaultDate: currentValue || null,
-        minDate: "today",
-        onClose: function(selectedDates, dateStr) {
-            setTimeout(() => {
-            input.value = dateStr;
-            input.dispatchEvent(new Event('blur'));
-            }, 0);
-        }
-        });
+            flatpickr(input, {
+                enableTime: false,
+                dateFormat: "F j, Y",
+                defaultDate: currentValue || null,
+                minDate: "today",
+                onClose: function (selectedDates, dateStr) {
+                    setTimeout(() => {
+                        input.value = dateStr;
+                        input.dispatchEvent(new Event('blur'));
+                    }, 0);
+                }
+            });
 
-        input.focus();
+            input.focus();
 
-            
+
         } else {
             input = document.createElement('select');
             input.className = 'form-select form-select-sm';
@@ -1503,12 +1651,12 @@ function calculateLevel(points) {
                 span.dataset.isCompleted = isCompleted;
                 if (type === 'value') {
                     span.textContent = '⭐'.repeat(newValue);
-                  } else if (type === 'deadline') {
+                } else if (type === 'deadline') {
                     span.textContent = input.value || "None";
-                  } else {
+                } else {
                     span.textContent = newValue || "None";
-                  }
-                  
+                }
+
                 input.replaceWith(span);
                 const feedback = document.getElementById('taskFeedback');
                 if (feedback) {
