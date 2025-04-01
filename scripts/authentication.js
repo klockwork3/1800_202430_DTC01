@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
             Level: 1,       // A leveling system for motivation
             Achievements: [], // Array to store milestone badges
             TasksCompleted: 0,  //Stores number of completed tasks
+            isOnline: true, // Add this to mark new user as online
           }).then(function () {
             console.log("New user added to firestore");
             window.location.assign("main.html");       //re-direct to main.html after signup
