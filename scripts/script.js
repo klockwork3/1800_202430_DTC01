@@ -86,10 +86,11 @@ if (leaderboardNav) {
 
 // opening task list 
 function toggleTaskList() {
+    closeOtherModals('taskList'); // Close other modals
     var taskList = document.getElementById('taskList');
     taskList.classList.toggle('active');
 
-    // Close the offcanvas menu if open
+    // Close the offcanvas menu if open (keeping your existing logic)
     const offcanvas = document.querySelector('.offcanvas.show');
     if (offcanvas) {
         const instance = bootstrap.Offcanvas.getInstance(offcanvas);
@@ -1186,8 +1187,9 @@ firebase.auth().onAuthStateChanged((user) => {
     }
 
 });
-// Function to toggle chat list (similar to task list toggle)
+// Function to toggle chat list
 function toggleChatList() {
+    closeOtherModals('chatList'); // Close other modals
     var chatList = document.getElementById('chatList');
     chatList.classList.toggle('active');
 }
@@ -1263,10 +1265,11 @@ function inviteUserToSession(invitedUserId) {
 }
 
 function toggleUserList() {
+    closeOtherModals('userList');
     const userList = document.getElementById('userList');
     userList.classList.toggle('active');
     if (userList.classList.contains('active')) {
-        loadOnlineUsers(); // Load users when opening the modal
+        loadOnlineUsers(); 
     }
 }
 // Fetch and display online users
@@ -1670,3 +1673,17 @@ document.getElementById('tasks').addEventListener('click', function (event) {
         });
     }
 });
+// Function to close all modals except the one being opened
+function closeOtherModals(exceptId) {
+    const modals = [
+        { id: 'taskList', element: document.getElementById('taskList') },
+        { id: 'chatList', element: document.getElementById('chatList') },
+        { id: 'userList', element: document.getElementById('userList') }
+    ];
+
+    modals.forEach(modal => {
+        if (modal.id !== exceptId && modal.element && modal.element.classList.contains('active')) {
+            modal.element.classList.remove('active');
+        }
+    });
+}
