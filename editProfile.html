@@ -54,6 +54,22 @@
 
 
                   <form id="profileForm">
+
+
+                        <div class="mb-3">
+                              <label class="form-label">Profile Picture</label>
+                              <div class="avatar-options-container">
+                                    <img src="/images/avatar-icons/bear.png" class="avatar-option"
+                                          data-avatar="bear.png" onclick="selectAvatar(this)">
+                                    <img src="/images/avatar-icons/farmer.png" class="avatar-option"
+                                          data-avatar="farmer.png" onclick="selectAvatar(this)">
+                                    <img src="/images/avatar-icons/wizard.png" class="avatar-option"
+                                          data-avatar="wizard.png" onclick="selectAvatar(this)">
+                              </div>
+                              <input type="hidden" id="selectedAvatar" name="avatar">
+                        </div>
+
+
                         <div class="mb-3">
                               <label for="displayNameChange" class="form-label">Display Name</label>
                               <input class="form-control" id="displayNameChange" aria-describedby="emailHelp">
