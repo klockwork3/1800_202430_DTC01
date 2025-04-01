@@ -129,38 +129,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // // Handle logout button (moved outside window click listener)
-    // const logoutButton = document.getElementById("logoutButton");
-    // if (logoutButton) {
-    //     logoutButton.addEventListener("click", function () {
-    //         const user = firebase.auth().currentUser;
-    //         if (user) {
-    //             db.collection("users").doc(user.uid).update({
-    //                 isOnline: false,
-    //                 lastActive: firebase.firestore.FieldValue.serverTimestamp()
-    //             })
-    //             .then(() => {
-    //                 return firebase.auth().signOut();
-    //             })
-    //             .then(() => {
-    //                 console.log("User signed out and marked offline");
-    //                 window.location.href = "login.html";
-    //             })
-    //             .catch((error) => {
-    //                 console.error("Error during logout:", error);
-    //                 firebase.auth().signOut().then(() => {
-    //                     window.location.href = "login.html";
-    //                 });
-    //             });
-    //         } else {
-    //             firebase.auth().signOut().then(() => {
-    //                 window.location.href = "login.html";
-    //             }).catch((error) => {
-    //                 console.error("Error signing out:", error);
-    //             });
-    //         }
-    //     });
-    // }
 
     // Window click listener for modal only
     window.addEventListener("click", function (event) {
@@ -364,9 +332,9 @@ function addTaskToUI(taskId, taskData, isCompleted) {
     let taskHTML = `
         <div class="task-item" data-task-id="${taskId}" style="border-bottom: 1px solid #ccc; padding: 8px;">
             <div class="d-flex justify-content-between align-items-center mb-1">
-            <div class="d-flex align-items-center gap-2 flex-grow-1">
-                <span class="drag-handle" style="cursor: grab;">≡</span>
-                    <input type="checkbox" class="form-check-input" onclick="removeTask(this)" ${isCompleted ? 'checked' : ''}>
+            <div class="d-flex align-items-center gap-3 flex-grow-1">
+                <span class="drag-handle me-1" style="cursor: grab;">≡</span>
+                    <input type="checkbox" class="form-check-input m-3" onclick="removeTask(this)" ${isCompleted ? 'checked' : ''}>
                     <textarea
                         class="form-control form-control-sm task-name-input ${isCompleted ? 'completed-task' : ''}" 
                         data-task-id="${taskId}"
