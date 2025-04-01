@@ -450,19 +450,25 @@ function removeTask(checkbox) {
 
             if (checkbox.checked) {
                 taskData.completedAt = firebase.firestore.FieldValue.serverTimestamp();
-
-                // Only update score if the task is being marked as completed
-                const taskValue = taskData.value || 1;
-                return db.collection("users").doc(user.uid).update({
-                    StatPoints: firebase.firestore.FieldValue.increment(taskValue)
-                }).then(() => taskData); // Return taskData for the next step
             } else {
-                // If unchecking, subtract the points
-                const taskValue = taskData.value || 1;
-                return db.collection("users").doc(user.uid).update({
-                    StatPoints: firebase.firestore.FieldValue.increment(-taskValue)
-                }).then(() => taskData); // Return taskData for the next step
+                delete taskData.completedAt;
             }
+
+            const taskValue = taskData.value || 1;
+
+            // Get current StatPoints to calculate the new total and level
+            return db.collection("users").doc(user.uid).get()
+                .then((userDoc) => {
+                    const currentPoints = userDoc.data().StatPoints || 0;
+                    const newPoints = checkbox.checked ? currentPoints + taskValue : currentPoints - taskValue;
+                    const levelData = calculateLevel(newPoints); // Calculate new level
+
+                    // Update both StatPoints and Level in Firestore
+                    return db.collection("users").doc(user.uid).update({
+                        StatPoints: newPoints,
+                        Level: levelData.currentLevel
+                    }).then(() => taskData); // Return taskData for the next step
+                });
         })
         .then((taskData) => {
             // Add to new collection
@@ -688,7 +694,7 @@ document.addEventListener("DOMContentLoaded", function () {
 //************************************************************************************************ */
 //AI Assisted - Chat box functionality .
 
-// Chat system implementation for CheckMate
+// Chat system implementation
 function createStudySession() {
     const user = firebase.auth().currentUser;
 
