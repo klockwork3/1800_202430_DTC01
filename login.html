@@ -53,62 +53,62 @@
         .offcanvas {
             margin-bottom: 62px;
         }
+
         .custom-start {
             left: 67% !important;
             visibility: hidden;
         }
+
         .custom-start-chat {
             left: 67% !important;
-            visibility:hidden;
+            visibility: hidden;
             /* Positions the task list div in the nav bar*/
         }
+
         .custom-start-users {
             left: 67% !important;
-            visibility:hidden;
+            visibility: hidden;
             /* Positions the task list div in the nav bar*/
+        }
+
+        .tektur-regular {
+            font-family: "Tektur", sans-serif;
+            font-weight: 410;
+            font-optical-sizing: auto;
+            font-style: normal;
+            font-variation-settings: "wdth" 100;
+            color: white;
+        }
+
+        .tektur-bold {
+            font-family: "Tektur", sans-serif;
+            font-weight: 600;
+            font-optical-sizing: auto;
+            font-style: normal;
+            font-variation-settings: "wdth" 100;
+            color: white;
         }
     </style>
 </head>
 
 <body>
-    <div class="px-4 py-5 my-5 text-center">
-        <h1 class="display-5 fw-bold">Login</h1>
+
+    <div id="nav-placeholder"></div>
+    <div class="px-4 py-5 my-5 text-center tektur-bold-logo">
+        <h1 class="display-5 fw-bold" style="color: white;">Login</h1>
         <div class="col-lg-6 mx-auto">
-            <p class="lead mb-4">Sign in to start slaying your procrastination.</p>
+            <p class="lead mb-4" style=" color: white">Sign in to start slaying your procrastination.</p>
             <div id="firebaseui-auth-container"></div>
             <div id="loader">Loading...</div>
-            <!-- Email/Password bars-->
-            <!--        <div class="form-floating mb-3">-->
-            <!--            <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com">-->
-            <!--            <label for="floatingInput">Email address</label>-->
-            <!--        </div>-->
-            <!--        <div class="form-floating">-->
-            <!--            <input type="password" class="form-control mb-3" id="floatingPassword" placeholder="Password">-->
-            <!--            <label for="floatingPassword">Password</label>-->
-            <!--        </div>-->
-            <!--Buttons-->
-            <!--        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">-->
-            <!--            <button type="button" class="btn btn-primary btn-lg px-4 gap-3 bg-success"-->
-            <!--                onclick="window.location.href='main.html';">Login</button>-->
-            <!--&lt;!&ndash;            <button type="button" class="btn btn-primary btn-lg px-4 gap-3 bg-success">Sign Up</button>&ndash;&gt;-->
-            <!--        </div>-->
+
         </div>
     </div>
 
 
-    <div id="nav-placeholder"></div>
-    <!------------------------------>
-    <!-- Your HTML Layout go here -->
-    <!------------------------------>
-    <!-- Stuff for body goes here -->
 
 
-    <!---------------------------------------------->
-    <!-- Your own JavaScript functions go here    -->
-    <!---------------------------------------------->
 
-    <!-- Link to scripts of your own -->
-    <!-- <script src="./scripts/script.js"></script> -->
+
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
