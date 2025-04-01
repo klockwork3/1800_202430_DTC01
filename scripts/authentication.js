@@ -39,10 +39,19 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("Error adding new user: " + error);
           });
         } else {
-          return true;
-        }
-        return false;
-      },
+          // Update existing user's online status
+          db.collection("users").doc(user.uid).update({
+            isOnline: true
+          })
+          .then(function() {
+            console.log("User marked as online");
+            window.location.assign("main.html");
+          })
+          .catch(function(error) {
+            console.error("Error updating online status: ", error);
+          });
+          return false; 
+        }},
       uiShown: function () {
         // The widget is rendered.
         // Hide the loader.
