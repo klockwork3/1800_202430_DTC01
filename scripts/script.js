@@ -1220,72 +1220,58 @@ function toggleChatList() {
 }
 justJoined = false
 // Function to add users to the session
-function inviteUserToSession(invitedUserId) {
+function joinUserSession(targetUserId) {
     const currentUser = firebase.auth().currentUser;
-    const currentSessionId = localStorage.getItem('currentSessionId');
-
-    if (!currentUser || !currentSessionId) {
-        console.error("No active session or user not logged in");
+    if (!currentUser) {
+        console.error("User not logged in");
         return;
     }
 
-    // Transaction to add user to session
-    db.runTransaction((transaction) => {
-        const currentSessionRef = db.collection("studySessions").doc(currentSessionId);
-        const invitedUserRef = db.collection("users").doc(invitedUserId);
-
-        return transaction.get(currentSessionRef).then((sessionDoc) => {
-            if (!sessionDoc.exists) {
-                throw new Error("Session does not exist");
+    // Check if the target user has an active session
+    db.collection("users").doc(targetUserId).get()
+        .then((doc) => {
+            if (!doc.exists) {
+                throw new Error("Target user does not exist");
             }
+            const targetUserData = doc.data();
+            const targetSessionId = targetUserData.activeSessionId;
 
-            const sessionData = sessionDoc.data();
-            const participants = sessionData.participants || [];
-
-            // If user is already in the session, no need to add again
-            if (participants.includes(invitedUserId)) {
+            if (!targetSessionId) {
+                alert("This user is not currently in a session.");
                 return;
             }
 
-            // Remove user from any existing active session
-            transaction.update(invitedUserRef, {
-                activeSessionId: firebase.firestore.FieldValue.delete()
+            // Join the target user's session
+            return joinStudySession(targetSessionId);
+        })
+        .then(() => {
+            // Notify the target user that you joined their session
+            const notification = {
+                type: 'user_joined',
+                message: `${currentUser.displayName || 'Anonymous'} has joined your session`,
+                sessionId: localStorage.getItem('currentSessionId'),
+                timestamp: new Date().toISOString()
+            };
+            return db.collection("users").doc(targetUserId).update({
+                notifications: firebase.firestore.FieldValue.arrayUnion(notification)
             });
-
-            // Add user to the new session
-            transaction.update(currentSessionRef, {
-                participants: firebase.firestore.FieldValue.arrayUnion(invitedUserId)
-            });
-
-            // Set the new session as active for the invited user
-            transaction.update(invitedUserRef, {
-                activeSessionId: currentSessionId
-            });
-
-            return currentSessionId;
-        });
-    })
-        .then((sessionId) => {
-            if (sessionId) {
-                // Create session invite notification
-                return createSessionNotification(invitedUserId, 'session_invite');
-            }
         })
         .then(() => {
             const alertBox = document.getElementById("inviteSuccessAlert");
             if (alertBox) {
+                alertBox.textContent = "Successfully joined the session!";
                 alertBox.style.display = "block";
                 setTimeout(() => {
                     alertBox.style.display = "none";
-                }, 3000); // hides after 3 seconds
+                }, 3000);
             }
-            toggleUserList();
+            toggleUserList(); // Close the user list
             document.getElementById("stopwatchContainer").style.display = "block";
             document.getElementById("showUsersBtnContainer").style.display = "none";
         })
         .catch((error) => {
-            console.error("Error inviting user:", error);
-            alert("Failed to invite user. Please try again.");
+            console.error("Error joining user session:", error);
+            alert("Failed to join the session. Please try again.");
         });
 }
 
@@ -1324,8 +1310,8 @@ function loadOnlineUsers() {
                 const userHTML = `
                 <div class="user-item d-flex justify-content-between align-items-center mb-2" data-user-id="${userId}">
                     <span>${userData.displayName || 'Anonymous'}</span>
-                    <button class="btn btn-sm btn-success add-user-btn" onclick="inviteUserToSession('${userId}')">
-                        Add to Session
+                    <button class="btn btn-sm btn-success add-user-btn" onclick="joinUserSession('${userId}')">
+                        Join Session
                     </button>
                 </div>
             `;
