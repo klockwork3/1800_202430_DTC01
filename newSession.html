@@ -196,111 +196,118 @@
             left: 67% !important;
             /* Positions the div at 75% from the left */
         }
+
         .custom-start-chat {
             left: 30% !important;
         }
-        .custom-start-users{
+
+        .custom-start-users {
             left: 20% !important;
         }
+
         .chat-message {
-    margin-bottom: 10px;
-    padding: 8px;
-    border-radius: 8px;
-    max-width: 80%;
-}
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            max-width: 80%;
+        }
 
-.sent-message {
-    background-color: #e6f2ff;
-    align-self: flex-end;
-    margin-left: auto;
-    text-align: right;
-}
+        .sent-message {
+            background-color: #e6f2ff;
+            align-self: flex-end;
+            margin-left: auto;
+            text-align: right;
+        }
 
-.received-message {
-    background-color: #f0f0f0;
-    align-self: flex-start;
-    margin-right: auto;
-    text-align: left;
-}
+        .received-message {
+            background-color: #f0f0f0;
+            align-self: flex-start;
+            margin-right: auto;
+            text-align: left;
+        }
 
-#chatMessages {
-    display: flex;
-    flex-direction: column;
-}
+        #chatMessages {
+            display: flex;
+            flex-direction: column;
+        }
 
-.chat-list {
-    display: none;
-    position: fixed;
-    bottom: 11%;
-    left: 10%; /* Move Chat List to the left side */
-    width: 300px;
-    background-color: #f8f9fa;
-    border: 4px solid #ddd;
-    border-radius: 20px;
-    padding: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-    min-height: 300px;
-    max-height: 500px;
-}
+        .chat-list {
+            display: none;
+            position: fixed;
+            bottom: 11%;
+            left: 10%;
+            /* Move Chat List to the left side */
+            width: 300px;
+            background-color: #f8f9fa;
+            border: 4px solid #ddd;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            min-height: 300px;
+            max-height: 500px;
+        }
 
-.chat-list.active {
-    display: block;
-}
-.user-item {
-    padding: 8px;
-    border-bottom: 1px solid #ddd;
-}
+        .chat-list.active {
+            display: block;
+        }
 
-.user-item:last-child {
-    border-bottom: none;
-}
+        .user-item {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
 
-.add-user-btn {
-    padding: 4px 8px;
-    font-size: 14px;
-}
-.notification {
-        max-width: 300px;
-        padding: 10px;
-        border-radius: 5px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
+        .user-item:last-child {
+            border-bottom: none;
+        }
 
-    .notification p {
-        margin: 0 0 10px 0;
-    }
+        .add-user-btn {
+            padding: 4px 8px;
+            font-size: 14px;
+        }
 
-    .notification button {
-        margin-right: 5px;
-    }
+        .notification {
+            max-width: 300px;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
 
-    .task-item .text-muted {
+        .notification p {
+            margin: 0 0 10px 0;
+        }
+
+        .notification button {
+            margin-right: 5px;
+        }
+
+        .task-item .text-muted {
             font-size: 0.8rem;
             opacity: 0.8;
         }
+
         .task-item i {
             font-size: 0.75rem;
             color: #6c757d;
-            
-}
-.participants-list {
-    display: block;
-    background-color: #fff;
-    border: none;
-    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
-    padding: 20px;
-    border-radius: 1rem;
-    margin-top: 0;
-    margin-bottom: 20px;
-}
 
-.participants-container {
-  max-height: 200px;
-  overflow-y: auto;
-  padding-left: 1rem;
-}
+        }
 
+        .participants-list {
+            display: block;
+            background-color: #fff;
+            border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            border-radius: 1rem;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .participants-container {
+            max-height: 200px;
+            overflow-y: auto;
+            padding-left: 1rem;
+        }
     </style>
 
     <!-------------------------------------------------------->
@@ -319,58 +326,54 @@
 
 
 
-<body class="bg-light py-4">
-      
+<body>
+
+    <div id="nav-placeholder"></div>
+
     <div class="container d-flex flex-column align-items-center" style="max-width: 600px;">
 
-        <h1 class="text-center mb-4 fw-bold text-light display-4" style="text-shadow: 1px 1px 4px rgba(0,0,0,0.7); letter-spacing: 1px;">
-            New Session
-          </h1>
-          
-    
+        <h1 class="text-center mb-4 fw-bold">New Session</h1>
+
         <!-- Invite Button -->
         <div id="showUsersBtnContainer" class="mb-4 w-100 text-center">
-          <button id="showUsersBtn" class="btn btn-info btn-lg fw-semibold" onclick="toggleUserList()">Join a Partner</button>
+            <button id="showUsersBtn" class="btn btn-info btn-lg fw-semibold" onclick="toggleUserList()">Join a
+                Partner</button>
         </div>
-    
+
         <!-- Invite Success Alert -->
         <div id="inviteSuccessAlert" class="alert alert-success text-center w-100" style="display: none;">
-          User invited successfully!
+            User invited successfully!
         </div>
-    
+
         <!-- Stopwatch Card -->
         <div id="stopwatchContainer" style="display: none; width: 100%;">
             <div class="card shadow p-4 mb-4 rounded-4">
-            <div class="card-body text-center">
-                <h5 class="card-title fw-bold mb-3">Time Elapsed</h5>
-                <p class="fs-5 fw-medium mb-1">Session Started: <span id="session" class="fw-semibold">Not started</span></p>
-                <div id="display" class="fs-4 fw-bold">00:00:00</div>
-            </div>
+                <div class="card-body text-center">
+                    <h5 class="card-title fw-bold mb-3">Time Elapsed</h5>
+                    <p class="fs-5 fw-medium mb-1">Session Started: <span id="session" class="fw-semibold">Not
+                            started</span></p>
+                    <div id="display" class="fs-4 fw-bold">00:00:00</div>
+                </div>
             </div>
         </div>
-        
+
         <!-- Users in Session Box -->
         <div id="participantsList" class="card shadow p-4 mb-5 rounded-4 w-100" style="display: none;">
             <div class="card-body">
-            <h5 class="card-title fw-bold mb-3 text-center">Users in Session</h5>
-            <div id="sessionParticipants" class="participants-container ps-3">
-                <p class="text-muted">(No participants yet)</p>
-            </div>
+                <h5 class="card-title fw-bold mb-3 text-center">Users in Session</h5>
+                <div id="sessionParticipants" class="participants-container ps-3">
+                    <p class="text-muted">(No participants yet)</p>
+                </div>
             </div>
         </div>
-  
-  
-    
+
+
+
         <!-- Stop Session Button -->
         <div class="text-center mb-5">
-          <button class="btn btn-outline-danger btn-lg fw-semibold" onclick="endStudySession()">Stop Session</button>
+            <button class="btn btn-outline-danger btn-lg fw-semibold" onclick="endStudySession()">Stop Session</button>
         </div>
-      </div>
-
-
-
-
-
+    </div>
 
 
 
@@ -396,9 +399,10 @@
         </h4>
         <div class="d-flex justify-content-start gap-2 mb-3">
             <button id="deleteAllTasksButton" class="btn btn-outline-danger btn-sm fw-semibold">🗑️ Delete All</button>
-            <button id="toggleAllDetailsButton" class="btn btn-outline-secondary btn-sm fw-semibold">Show All Details</button>
+            <button id="toggleAllDetailsButton" class="btn btn-outline-secondary btn-sm fw-semibold">Show All
+                Details</button>
         </div>
-        
+
         <div id="taskFeedback" class="alert alert-success d-none" role="alert" style="margin-top: 10px;">
             Task updated!
         </div>
@@ -477,49 +481,53 @@
             </div>
         </div>
     </div>
-<!-- *************************************************************************************************-->
+    <!-- *************************************************************************************************-->
 
-<!-- The Chat List -->
-<div id="chatList" class="chat-list">
-    <h4>Study Session Chat
-        <button type="button" class="btn-close btn-close-black float-end" aria-label="Close"
-            onclick="toggleChatList()">
-        </button>
-    </h4>
-    <!-- Messages Container -->
-    <div id="chatMessages" class="task-container" style="max-height: 370px; overflow-y: auto;">
-        <!-- Chat messages will be added here dynamically -->
-    </div>
-    <!-- Chat Input -->
-    <div class="add-task-button d-flex justify-content-center">
-        <div class="input-group">
-            <input type="text" id="chatMessageInput" class="form-control" placeholder="Type a message...">
-            <button class="btn btn-success" id="sendChatButton">Send</button>
+    <!-- The Chat List -->
+    <div id="chatList" class="chat-list">
+        <h4>Study Session Chat
+            <button type="button" class="btn-close btn-close-black float-end" aria-label="Close"
+                onclick="toggleChatList()">
+            </button>
+        </h4>
+        <!-- Messages Container -->
+        <div id="chatMessages" class="task-container" style="max-height: 370px; overflow-y: auto;">
+            <!-- Chat messages will be added here dynamically -->
+        </div>
+        <!-- Chat Input -->
+        <div class="add-task-button d-flex justify-content-center">
+            <div class="input-group">
+                <input type="text" id="chatMessageInput" class="form-control" placeholder="Type a message...">
+                <button class="btn btn-success" id="sendChatButton">Send</button>
+            </div>
         </div>
     </div>
-</div>
-<!-- *************************************************************************************************-->
-<div id="userList" class="chat-list custom-start-chat"> <!-- Using chat-list styling for consistency -->
-    <h4>Online Users
-        <button type="button" class="btn-close btn-close-black float-end" aria-label="Close"
-            onclick="toggleUserList()">
-        </button>
-    </h4>
-    <!-- Users Container -->
-    <div id="onlineUsers" class="task-container" style="max-height: 370px; overflow-y: auto;">
-        <!-- Online users will be added here dynamically -->
+    <!-- *************************************************************************************************-->
+    <div id="userList" class="chat-list custom-start-chat"> <!-- Using chat-list styling for consistency -->
+        <h4>Online Users
+            <button type="button" class="btn-close btn-close-black float-end" aria-label="Close"
+                onclick="toggleUserList()">
+            </button>
+        </h4>
+        <!-- Users Container -->
+        <div id="onlineUsers" class="task-container" style="max-height: 370px; overflow-y: auto;">
+            <!-- Online users will be added here dynamically -->
+        </div>
     </div>
-</div>
-<!--***************************************************************************************************-->
-    <div id="nav-placeholder"></div>
+    <!--***************************************************************************************************-->
+
 
     <!-- Invite Success Alert -->
-    <div id="inviteSuccessAlert" class="alert alert-success text-center" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1050;">
+    <div id="inviteSuccessAlert" class="alert alert-success text-center"
+        style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1050;">
         User invited successfully!
     </div>
 
+    <div id="nav-placeholder-bot"></div>
 
-<!-- Your Scripts -->
+
+
+    <!-- Your Scripts -->
 
 
     <script src="./scripts/firebaseAPI_DTC01.js"></script>
@@ -527,6 +535,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="./scripts/script.js"></script>
     <script src="./scripts/nav.js"></script>
+    <script src="./scripts/navBot.js"></script>
 
     <script>
         let startTime, elapsedTime = 0, timerInterval;
@@ -575,42 +584,42 @@
         window.onload = startStopwatch;
     </script>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        firebase.auth().onAuthStateChanged(function(user) {
-            if (user) {
-                console.log("User logged in:", user.uid);
-                const existingSessionId = localStorage.getItem('currentSessionId');
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            firebase.auth().onAuthStateChanged(function (user) {
+                if (user) {
+                    console.log("User logged in:", user.uid);
+                    const existingSessionId = localStorage.getItem('currentSessionId');
 
-                if (existingSessionId) {
-                    db.collection("studySessions").doc(existingSessionId).get()
-                        .then((doc) => {
-                            if (doc.exists && doc.data().participants.includes(user.uid)) {
-                                console.log("Joining existing session:", existingSessionId);
-                                joinStudySession(existingSessionId);
-                            } else {
-                                console.log("Invalid session or not a participant. Creating new session.");
-                                localStorage.removeItem('currentSessionId');
+                    if (existingSessionId) {
+                        db.collection("studySessions").doc(existingSessionId).get()
+                            .then((doc) => {
+                                if (doc.exists && doc.data().participants.includes(user.uid)) {
+                                    console.log("Joining existing session:", existingSessionId);
+                                    joinStudySession(existingSessionId);
+                                } else {
+                                    console.log("Invalid session or not a participant. Creating new session.");
+                                    localStorage.removeItem('currentSessionId');
+                                    createStudySession();
+                                }
+                            })
+                            .catch((error) => {
+                                console.error("Error checking session:", error);
                                 createStudySession();
-                            }
-                        })
-                        .catch((error) => {
-                            console.error("Error checking session:", error);
-                            createStudySession();
-                        });
-                } else {
-                    console.log("No existing session. Creating new session.");
-                    createStudySession();
-                }
+                            });
+                    } else {
+                        console.log("No existing session. Creating new session.");
+                        createStudySession();
+                    }
 
-                listenForNotifications();
-            } else {
-                console.log("No user. Redirecting to login.");
-                window.location.href = 'login.html';
-            }
+                    listenForNotifications();
+                } else {
+                    console.log("No user. Redirecting to login.");
+                    window.location.href = 'login.html';
+                }
+            });
         });
-    });
-</script>
+    </script>
 </body>
 
 </html>
