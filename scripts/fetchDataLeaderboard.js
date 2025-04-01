@@ -1,6 +1,6 @@
 
 var your_collection_name = "users"; // Name of the collection in Firestore
-
+// AI AIDED FUNCTION
 function fetchDataRealTime() {
       db.collection(your_collection_name)
             .orderBy("StatPoints", "desc")
@@ -20,7 +20,6 @@ function fetchDataRealTime() {
               <th scope="col">Name</th>
               <th scope="col">Level</th>
               <th scope="col">StatPoints</th>
-              <th scope="col">Tasks Completed</th>
              
             `;
                   thead.appendChild(headerRow);
@@ -35,8 +34,6 @@ function fetchDataRealTime() {
                         const userName = userData.name || "Anonymous"; // Default to "Anonymous" if no name is provided
                         const userLevel = userData.Level || 0; // Default to 0 if no level is provided
                         const userStatPoints = userData.StatPoints || 0; // Default to 0 if no stat points
-                        const userTasksCompleted = userData.TasksCompleted || 0; // Default to 0 if no tasks completed
-
 
                         // Create a row for each user
                         let row = document.createElement("tr");
@@ -46,7 +43,7 @@ function fetchDataRealTime() {
                     <td>${userName}</td>
                     <td>${userLevel}</td>
                     <td>${userStatPoints}</td>
-                    <td>${userTasksCompleted}</td>
+                  
                     
                   `;
 
