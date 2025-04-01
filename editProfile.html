@@ -17,6 +17,12 @@
                   left: 67% !important;
                   visibility: hidden;
             }
+
+            .avatar-option.selected {
+                  border-color: #4cc617;
+                  box-shadow: 0 0 20px rgba(22, 238, 58, 0.5);
+                  transform: scale(1.5);
+            }
       </style>
       <link rel="stylesheet" href="./styles/style.css">
 
@@ -64,6 +70,12 @@
                                     <img src="/images/avatar-icons/farmer.png" class="avatar-option"
                                           data-avatar="farmer.png" onclick="selectAvatar(this)">
                                     <img src="/images/avatar-icons/wizard.png" class="avatar-option"
+                                          data-avatar="wizard.png" onclick="selectAvatar(this)">
+                                    <img src="/images/avatar-icons/frog.png" class="avatar-option"
+                                          data-avatar="bear.png" onclick="selectAvatar(this)">
+                                    <img src="/images/avatar-icons/knight.png" class="avatar-option"
+                                          data-avatar="farmer.png" onclick="selectAvatar(this)">
+                                    <img src="/images/avatar-icons/viking.png" class="avatar-option"
                                           data-avatar="wizard.png" onclick="selectAvatar(this)">
                               </div>
                               <input type="hidden" id="selectedAvatar" name="avatar">
