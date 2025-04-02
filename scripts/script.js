@@ -1277,7 +1277,7 @@ function loadOnlineUsers() {
         })
         .catch((error) => {
             console.error("Error loading online users:", error);
-            onlineUsersContainer.innerHTML = '<p>Error loading users</p>';
+            // onlineUsersContainer.innerHTML = '<p>Error loading users</p>';
         });
 
 }// Update user online status
