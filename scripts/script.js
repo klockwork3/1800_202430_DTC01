@@ -995,50 +995,38 @@ function updateParticipantsUI(participants) {
 function sendMessage() {
     const messageInput = document.getElementById('chatMessageInput');
     const message = messageInput.value.trim();
-
+  
     if (message) {
-        const user = firebase.auth().currentUser;
-        const currentSessionId = localStorage.getItem('currentSessionId');
-
-        // Check if user is still in the session
-        db.collection("studySessions").doc(currentSessionId).get()
-            .then((doc) => {
-                if (doc.exists) {
-                    const sessionData = doc.data();
-                    const participants = sessionData.participants || [];
-
-                    if (participants.includes(user.uid)) {
-                        // User is still in the session, send message
-                        const chatMessage = {
-                            text: message,
-                            sender: user.uid,
-                            senderName: user.displayName || 'Anonymous',
-                            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                            sessionId: currentSessionId
-                        };
-
-                        return db.collection("chatMessages").add(chatMessage);
-                    } else {
-                        throw new Error("Not a participant of this session");
-                    }
-                }
-                throw new Error("Session does not exist");
-            })
-            .then(() => {
-                messageInput.value = ''; // Clear input after sending
-            })
-            .catch((error) => {
-                console.error("Error sending message: ", error);
-                alert('Cannot send message. You may have left the session.');
-
-                // Disable chat input
-                messageInput.disabled = true;
-                const sendButton = document.getElementById('sendChatButton');
-                if (sendButton) sendButton.disabled = true;
-            });
+      const user = firebase.auth().currentUser;
+      const currentSessionId = localStorage.getItem('currentSessionId');
+  
+      if (!user || !currentSessionId) return;
+  
+      // ✅ Get updated name from Firestore
+      db.collection("users").doc(user.uid).get()
+        .then((doc) => {
+          const senderName = doc.exists && doc.data().name ? doc.data().name : 'Anonymous';
+  
+          const chatMessage = {
+            text: message,
+            sender: user.uid,
+            senderName: senderName,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            sessionId: currentSessionId
+          };
+  
+          return db.collection("chatMessages").add(chatMessage);
+        })
+        .then(() => {
+          messageInput.value = ''; // Clear input
+        })
+        .catch((error) => {
+          console.error("Error sending message: ", error);
+        });
     }
-
-} function loadChatMessages(sessionId) {
+  }
+  
+  function loadChatMessages(sessionId) {
     const user = firebase.auth().currentUser;
     const messagesContainer = document.getElementById('chatMessages');
 
