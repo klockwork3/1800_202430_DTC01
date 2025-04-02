@@ -948,7 +948,8 @@ function updateParticipantsUI(participants) {
                     const userData = doc.data();
                     const userLevel = userData.Level || 0;
                     const userStatPoints = userData.StatPoints || 0;
-                    const displayName = userData.displayName || 'Anonymous';
+                    const displayName = userData.name || 'Anonymous';
+
 
                     // Check if participant element already exists
                     let participantElement = participantsContainer.querySelector(`[data-participant-id="${participantId}"]`);
@@ -1025,7 +1026,7 @@ function sendMessage() {
         });
     }
   }
-  
+
   function loadChatMessages(sessionId) {
     const user = firebase.auth().currentUser;
     const messagesContainer = document.getElementById('chatMessages');
@@ -1286,7 +1287,7 @@ function updateUserStatus(isOnline) {
 
     db.collection("users").doc(user.uid).set({
         isOnline: isOnline,
-        displayName: user.displayName || 'Anonymous', // Ensure displayName is stored
+        // displayName: user.displayName || 'Anonymous', // Ensure displayName is stored
         lastActive: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true })
         .catch((error) => {
