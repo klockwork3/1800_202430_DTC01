@@ -698,7 +698,7 @@ function createStudySession() {
 
                 const sessionData = {
                     host: user.uid,
-                    hostName: user.displayName || 'Anonymous',
+                    hostName: user.name || 'Anonymous',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     status: 'active',
                     participants: [user.uid]
@@ -806,7 +806,7 @@ function endStudySession() {
 
                 const notification = {
                     type: 'user_left',
-                    message: `${user.displayName || 'Anonymous'} has left the session`,
+                    message: `${user.name || 'Anonymous'} has left the session`,
                     sessionId: currentSessionId,
                     timestamp: new Date().toISOString(),
                     except: user.uid
@@ -996,38 +996,38 @@ function updateParticipantsUI(participants) {
 function sendMessage() {
     const messageInput = document.getElementById('chatMessageInput');
     const message = messageInput.value.trim();
-  
-    if (message) {
-      const user = firebase.auth().currentUser;
-      const currentSessionId = localStorage.getItem('currentSessionId');
-  
-      if (!user || !currentSessionId) return;
-  
-      // ✅ Get updated name from Firestore
-      db.collection("users").doc(user.uid).get()
-        .then((doc) => {
-          const senderName = doc.exists && doc.data().name ? doc.data().name : 'Anonymous';
-  
-          const chatMessage = {
-            text: message,
-            sender: user.uid,
-            senderName: senderName,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            sessionId: currentSessionId
-          };
-  
-          return db.collection("chatMessages").add(chatMessage);
-        })
-        .then(() => {
-          messageInput.value = ''; // Clear input
-        })
-        .catch((error) => {
-          console.error("Error sending message: ", error);
-        });
-    }
-  }
 
-  function loadChatMessages(sessionId) {
+    if (message) {
+        const user = firebase.auth().currentUser;
+        const currentSessionId = localStorage.getItem('currentSessionId');
+
+        if (!user || !currentSessionId) return;
+
+        // ✅ Get updated name from Firestore
+        db.collection("users").doc(user.uid).get()
+            .then((doc) => {
+                const senderName = doc.exists && doc.data().name ? doc.data().name : 'Anonymous';
+
+                const chatMessage = {
+                    text: message,
+                    sender: user.uid,
+                    senderName: senderName,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    sessionId: currentSessionId
+                };
+
+                return db.collection("chatMessages").add(chatMessage);
+            })
+            .then(() => {
+                messageInput.value = ''; // Clear input
+            })
+            .catch((error) => {
+                console.error("Error sending message: ", error);
+            });
+    }
+}
+
+function loadChatMessages(sessionId) {
     const user = firebase.auth().currentUser;
     const messagesContainer = document.getElementById('chatMessages');
 
@@ -1205,7 +1205,7 @@ function joinUserSession(targetUserId) {
             // Notify the target user that you joined their session
             const notification = {
                 type: 'user_joined',
-                message: `${currentUser.displayName || 'Anonymous'} has joined your session`,
+                message: `${currentUser.name || 'Anonymous'} has joined your session`,
                 sessionId: localStorage.getItem('currentSessionId'),
                 timestamp: new Date().toISOString()
             };
@@ -1266,7 +1266,7 @@ function loadOnlineUsers() {
 
                 const userHTML = `
                 <div class="user-item d-flex justify-content-between align-items-center mb-2" data-user-id="${userId}">
-                    <span>${userData.displayName || 'Anonymous'}</span>
+                    <span>${userData.name || 'Anonymous'}</span>
                     <button class="btn btn-sm btn-success add-user-btn" onclick="joinUserSession('${userId}')">
                         Join Session
                     </button>
@@ -1457,7 +1457,7 @@ function createSessionNotification(invitedUserId, notificationType) {
         type: notificationType,
         sessionId: currentSessionId,
         senderId: currentUser.uid,
-        senderName: currentUser.displayName || 'Anonymous',
+        senderName: currentUser.name || 'Anonymous',
         timestamp: new Date().toISOString()
     };
 
