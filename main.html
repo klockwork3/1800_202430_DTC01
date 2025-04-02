@@ -244,9 +244,9 @@
     <div id="nav-placeholder"></div>
 
     <div class="px-4 py-5 my-5 text-center tektur-bold-logo">
-        <h1 class="display-5 fw-bold" style="color: white;">Welcome back, <span id="welcomeName" </h1>
+        <h1 class="display-5 fw-bold" style="color: white;">Welcome back, <span id="welcomeName"></span> </h1>
                 <div class="col-lg-6 mx-auto">
-                    <p class="lead mb-4" style=" color: white">Sign in to start slaying your procrastination.</p>
+                    <p class="lead mb-4" style=" color: white">Start slaying your procrastination.</p>
                 </div>
     </div>
 
@@ -404,26 +404,24 @@
     <script src="./scripts/alertMain.js"></script>
     <script src="./scripts/fetchProfile.js"></script>
 
-    <!-- <script>
-        function isOnMainPage() {
-            return window.location.pathname === '/' ||
-                window.location.pathname === '/main.html' ||
-                window.location.pathname === '';
+    <script>
+        firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+            db.collection("users").doc(user.uid).get()
+            .then((doc) => {
+                if (doc.exists) {
+                const name = doc.data().name || "User";
+                const nameSpan = document.getElementById("welcomeName");
+                if (nameSpan) nameSpan.textContent = name;
+                }
+            })
+            .catch((error) => {
+                console.error("Error getting user data:", error);
+            });
         }
+        });
 
-        function toggleChatList() {
-            if (isOnMainPage()) {
-                alert("You need to be in a study sesstion, hint: click Launch Study Session");
-                return;
-            }
-        }
-        function toggleUserList() {
-            if (isOnMainPage()) {
-                alert("You need to be in a study sesstion, hint: click Launch Study Session");
-                return;
-            }
-        }
-    </script> -->
+    </script>
 
 </body>
 
