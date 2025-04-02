@@ -245,9 +245,9 @@
 
     <div class="px-4 py-5 my-5 text-center tektur-bold-logo">
         <h1 class="display-5 fw-bold" style="color: white;">Welcome back, <span id="welcomeName"></span> </h1>
-                <div class="col-lg-6 mx-auto">
-                    <p class="lead mb-4" style=" color: white">Start slaying your procrastination.</p>
-                </div>
+        <div class="col-lg-6 mx-auto">
+            <p class="lead mb-4" style=" color: rgb(251, 102, 92)">Start slaying your procrastination.</p>
+        </div>
     </div>
 
 
@@ -406,19 +406,19 @@
 
     <script>
         firebase.auth().onAuthStateChanged((user) => {
-        if (user) {
-            db.collection("users").doc(user.uid).get()
-            .then((doc) => {
-                if (doc.exists) {
-                const name = doc.data().name || "User";
-                const nameSpan = document.getElementById("welcomeName");
-                if (nameSpan) nameSpan.textContent = name;
-                }
-            })
-            .catch((error) => {
-                console.error("Error getting user data:", error);
-            });
-        }
+            if (user) {
+                db.collection("users").doc(user.uid).get()
+                    .then((doc) => {
+                        if (doc.exists) {
+                            const name = doc.data().name || "User";
+                            const nameSpan = document.getElementById("welcomeName");
+                            if (nameSpan) nameSpan.textContent = name;
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error getting user data:", error);
+                    });
+            }
         });
 
     </script>
