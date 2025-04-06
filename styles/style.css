@@ -29,6 +29,7 @@
     padding-right: 6px;
 }
 
+/* styling for the every page's background */
 
 html,
 body {
@@ -48,9 +49,9 @@ body {
 
 #leaderboard-placeholder table {
     max-width: 80%;
-    /* Adjust width of table */
+    /* adjust width of table */
     margin: auto;
-    /* Center the table */
+    /* center the table */
     font-size: 14px;
     /* Reduce font size */
 }
@@ -60,6 +61,10 @@ body {
     padding: 6px 10px;
     /* Reduce cell padding */
 }
+
+
+
+/* styling for directions text */
 
 .card {
     max-width: 600px;
