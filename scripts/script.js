@@ -104,14 +104,15 @@ function toggleTaskList() {
 function getSelectedStarValue() {
     const selectedStar = document.querySelector('input[name="star"]:checked');
     if (selectedStar) {
-        // Extract the star number from the ID (e.g., "star-3" -> 3)
+        // Extract the star number from the ID
         return parseInt(selectedStar.id.split('-')[1]);
     }
     return 1;
 
 }
 
-
+// "Add Task" modal manager - 
+// This manages form input visibility, and integrates added tasks with database.
 document.addEventListener("DOMContentLoaded", function () {
     const modal = document.getElementById("exampleModal");
     const addTaskBtn = document.querySelector(".add-task-button button");
@@ -327,7 +328,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-
+// This function adds a task item in the UI with checkbox, editable name, and details like deadline and difficulty
 function addTaskToUI(taskId, taskData, isCompleted) {
     let taskHTML = `
         <div class="task-item" data-task-id="${taskId}" style="border-bottom: 1px solid #ccc; padding: 8px;">
@@ -381,44 +382,7 @@ function addTaskToUI(taskId, taskData, isCompleted) {
 
 }
 
-// function removeTask(checkbox) {
-//     const taskElement = checkbox.closest(".task-item");
-//     const taskId = taskElement.getAttribute("data-task-id");
-//     const user = firebase.auth().currentUser;
-//     if (!user || !taskId) return;
-
-//     const fromCollection = checkbox.checked ? "tasks" : "taskHistory";
-//     const toCollection = checkbox.checked ? "taskHistory" : "tasks";
-
-//     // Get the task data first
-//     db.collection("users").doc(user.uid).collection(fromCollection).doc(taskId).get()
-//         .then((doc) => {
-//             if (!doc.exists) throw new Error("Task not found");
-//             const taskData = doc.data();
-//             taskData.completed = checkbox.checked;
-
-//             if (checkbox.checked) {
-//                 taskData.completedAt = firebase.firestore.FieldValue.serverTimestamp();
-//             } else {
-//                 delete taskData.completedAt;
-//             }
-
-//             // Add to new collection
-//             return db.collection("users").doc(user.uid).collection(toCollection).doc(taskId).set(taskData);
-//         })
-//         .then(() => {
-//             // Delete from original collection
-//             return db.collection("users").doc(user.uid).collection(fromCollection).doc(taskId).delete();
-//         })
-//         .then(() => {
-//             // Reload the task list to reflect changes
-//             loadTasks();
-//         })
-//         .catch((error) => {
-//             console.error("Error toggling task completion:", error);
-//         });
-// }
-
+//Function to remove task from list & update user stats & level
 function removeTask(checkbox) {
     const taskElement = checkbox.closest(".task-item");
     const taskId = taskElement.getAttribute("data-task-id");
@@ -473,109 +437,7 @@ function removeTask(checkbox) {
             console.error("Error toggling task completion:", error);
         });
 }
-// function removeTask(checkbox) {
-//     console.log("removeTask triggered with checkbox:", checkbox);
-
-//     const taskItem = checkbox.parentElement.parentElement;
-//     console.log("taskItem:", taskItem);
-//     const taskId = taskItem.getAttribute('data-task-id');
-//     console.log("taskId:", taskId);
-
-//     const user = firebase.auth().currentUser;
-//     console.log("user:", user ? user.uid : "No user");
-//     if (!user || !taskId) {
-//         console.error("No user or task ID available - user:", user, "taskId:", taskId);
-//         return;
-//     }
-//     if (checkbox.checked) {
-//         // ✅ MARK AS COMPLETE
-//         console.log(`Attempting to complete task ${taskId} for user ${user.uid}`);
-
-//         db.collection("users").doc(user.uid).collection("tasks").doc(taskId).get()
-//             .then((doc) => {
-//                 if (!doc.exists) {
-//                     console.error(`Task ${taskId} does not exist`);
-//                     return;
-//                 }
-//                 const taskData = doc.data();
-//                 console.log("Task data:", taskData);
-
-//                 const completedTask = {
-//                     ...taskData,
-//                     completed: true,
-//                     completedAt: firebase.firestore.FieldValue.serverTimestamp()
-//                 };
-
-//                 return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).set(completedTask)
-//                     .then(() => {
-//                         console.log(`Task ${taskId} moved to history`);
-//                         return db.collection("users").doc(user.uid).update({
-//                             StatPoints: firebase.firestore.FieldValue.increment(taskData.value || 1)
-//                         });
-//                     })
-//                     .then(() => {
-//                         console.log(`StatPoints incremented by ${taskData.value || 1}`);
-//                         return db.collection("users").doc(user.uid).collection("tasks").doc(taskId).delete();
-//                     })
-//                     .then(() => {
-//                         console.log(`Task ${taskId} deleted from active tasks`);
-//                         taskItem.remove();
-//                         return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).get();
-//                     })
-//                     .then((doc) => {
-//                         if (doc.exists) {
-//                             console.log("Re-fetched task from history:", doc.data());
-//                             addTaskToUI(taskId, doc.data(), true);
-//                         }
-//                     });
-//             })
-//             .catch((error) => {
-//                 console.error("Error in task completion process:", error);
-//             });
-//     } else {
-//         // ✅ MOVE BACK TO ACTIVE TASKS
-//         console.log(`Attempting to un-complete task ${taskId}`);
-
-//         db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).get()
-//             .then((doc) => {
-//                 if (!doc.exists) {
-//                     console.error(`Task ${taskId} not found in history`);
-//                     return;
-//                 }
-
-//                 const taskData = doc.data();
-//                 const activeTask = {
-//                     ...taskData,
-//                     completed: false,
-//                     completedAt: null
-//                 };
-
-//                 return db.collection("users").doc(user.uid).collection("tasks").doc(taskId).set(activeTask)
-//                     .then(() => {
-//                         console.log(`Task ${taskId} moved back to active tasks`);
-//                         // Decrement StatPoints by the same value
-//                         return db.collection("users").doc(user.uid).update({
-//                             StatPoints: firebase.firestore.FieldValue.increment(-(taskData.value || 1))
-//                         });
-//                     })
-//                     .then(() => {
-//                         console.log(`StatPoints decremented by ${taskData.value || 1}`);
-//                         return db.collection("users").doc(user.uid).collection("taskHistory").doc(taskId).delete();
-//                     })
-//                     .then(() => {
-//                         console.log(`Task ${taskId} removed from history`);
-//                         if (existingTask) existingTask.remove();
-//                         addTaskToUI(taskId, activeTask, false);
-//                     });
-//             })
-//             .catch((error) => {
-//                 console.error("Error moving task back to active:", error);
-//             });
-//     }
-// }
-
-
-
+// Function to delete tasks
 function deleteTask(taskId, isCompleted) {
     const user = firebase.auth().currentUser;
     if (!user) return;
@@ -592,7 +454,8 @@ function deleteTask(taskId, isCompleted) {
 }
 
 
-
+// Handles UI interactions for tasks 
+// This handles completion toggling, detail visibility, mass deletion, and inline name editing
 document.addEventListener("DOMContentLoaded", function () {
     // Toggle task completion (strikethrough & gray-out)
     document.getElementById("tasks").addEventListener("change", function (event) {
@@ -678,10 +541,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 
-//************************************************************************************************ */
-//AI Assisted - Chat box functionality .
 
-// Chat system implementation
+//**************************Session-related functions*********************************************/
+
+
+// Initialize a new study session or join an existing one if the user already has an active session
 function createStudySession() {
     const user = firebase.auth().currentUser;
 
@@ -729,7 +593,11 @@ function createStudySession() {
             console.error("Error checking existing session: ", error);
         });
 
-} function joinStudySession(sessionId) {
+} 
+
+// Handles joining a study session by updating the
+//  participants list and setting the user's active session using Firestore transactions
+function joinStudySession(sessionId) {
     const user = firebase.auth().currentUser;
 
     // Use a transaction to ensure atomic updates
@@ -783,6 +651,8 @@ function createStudySession() {
         });
 
 }
+
+// Ends the current study session by removing the user, notifying participants, and cleaning up UI.
 function endStudySession() {
     const user = firebase.auth().currentUser;
     const currentSessionId = localStorage.getItem('currentSessionId');
@@ -806,7 +676,7 @@ function endStudySession() {
 
                 const notification = {
                     type: 'user_left',
-                    message: `${user.name || 'Anonymous'} has left the session`,
+                    message: `${user.displayName || 'Anonymous'} has left the session`,
                     sessionId: currentSessionId,
                     timestamp: new Date().toISOString(),
                     except: user.uid
@@ -856,7 +726,10 @@ function endStudySession() {
             console.error("Error ending study session:", error);
         });
 
-} function listenToSessionChanges(sessionId) {
+} 
+
+//This function listens for changes to a specific study session and updates the UI accordingly.
+function listenToSessionChanges(sessionId) {
     const user = firebase.auth().currentUser;
     if (!user) return;
 
@@ -922,6 +795,8 @@ function endStudySession() {
             console.error("Error in session listener:", error);
         });
 }
+
+//This function updates the participants' list UI in real-time based on the changes in Firestore.
 function updateParticipantsUI(participants) {
     const participantsContainer = document.getElementById('sessionParticipants');
     const participantsList = document.getElementById('participantsList');
@@ -993,6 +868,137 @@ function updateParticipantsUI(participants) {
     // Return cleanup function in case participants change
     return cleanupListeners;
 }
+
+// Handle user authentication state on 'newsession.html':
+// - Deletes any existing active session ID
+// - Attempts to rejoin an existing session or creates a new one
+// - Starts notification listener after session is initialized
+// - Redirects to login if user is not authenticated
+firebase.auth().onAuthStateChanged((user) => {
+
+    if (!window.location.pathname.includes('newsession.html')) {
+        return; // Exit if not on new session page
+    }
+
+    if (user) {
+        updateUserStatus(true);
+
+        // Remove any lingering session first
+        db.collection("users").doc(user.uid).update({
+            activeSessionId: firebase.firestore.FieldValue.delete()
+        })
+            .then(() => {
+                const sessionId = localStorage.getItem('currentSessionId');
+
+                if (sessionId) {
+                    // Try to join the existing session
+                    return db.collection("studySessions").doc(sessionId).get()
+                        .then((doc) => {
+                            if (doc.exists && doc.data().participants.includes(user.uid)) {
+                                return joinStudySession(sessionId);
+                            } else {
+                                // Invalid session, create a new one
+                                localStorage.removeItem('currentSessionId');
+                                return createStudySession();
+                            }
+                        });
+                } else {
+                    // No existing session, create a new one
+                    return createStudySession();
+                }
+            })
+            .then(() => {
+                // Always listen for notifications
+                listenForNotifications();
+            })
+            .catch((error) => {
+                console.error("Error during authentication state change:", error);
+                createStudySession();
+            });
+    } else {
+        window.location.href = 'login.html';
+    }
+
+});
+
+justJoined = false
+// Function to join another session.
+function joinUserSession(targetUserId) {
+    const currentUser = firebase.auth().currentUser;
+    if (!currentUser) {
+        console.error("User not logged in");
+        return;
+    }
+
+    // Check if the target user has an active session
+    db.collection("users").doc(targetUserId).get()
+        .then((doc) => {
+            if (!doc.exists) {
+                throw new Error("Target user does not exist");
+            }
+            const targetUserData = doc.data();
+            const targetSessionId = targetUserData.activeSessionId;
+
+            if (!targetSessionId) {
+                alert("This user is not currently in a session.");
+                return;
+            }
+
+            // Join the target user's session
+            return joinStudySession(targetSessionId);
+        })
+        .then(() => {
+            // Notify the target user that you joined their session
+            const notification = {
+                type: 'user_joined',
+                message: `${currentUser.displayName || 'Anonymous'} has joined your session`,
+                sessionId: localStorage.getItem('currentSessionId'),
+                timestamp: new Date().toISOString()
+            };
+            return db.collection("users").doc(targetUserId).update({
+                notifications: firebase.firestore.FieldValue.arrayUnion(notification)
+            });
+        })
+        .then(() => {
+            const alertBox = document.getElementById("inviteSuccessAlert");
+            if (alertBox) {
+                alertBox.textContent = "Successfully joined the session!";
+                alertBox.style.display = "block";
+                setTimeout(() => {
+                    alertBox.style.display = "none";
+                }, 3000);
+            }
+            toggleUserList(); // Close the user list
+            document.getElementById("stopwatchContainer").style.display = "block";
+            document.getElementById("showUsersBtnContainer").style.display = "none";
+        })
+        .catch((error) => {
+            console.error("Error joining user session:", error);
+            alert("Failed to join the session. Please try again.");
+        });
+}
+// 1. Process the session invite by joining the session with the provided sessionId
+// 2. After successfully joining, the function removes the invite notification from the current user's Firestore notifications array
+function handleSessionInvite(notification) {
+    joinStudySession(notification.sessionId)
+        .then(() => {
+            // Remove the notification after processing
+            return db.collection("users").doc(firebase.auth().currentUser.uid).update({
+                notifications: firebase.firestore.FieldValue.arrayRemove(notification)
+            });
+        })
+        .catch((error) => {
+            console.error("Error processing session invite:", error);
+        });
+}
+
+//*************************************************************************************************/
+//AI Assisted - Chat box functionality .
+// Chat system implementation
+
+
+// Sends a chat message to the Firestore database, including the user's name and the message content. 
+// Clears the input field after the message is successfully sent.
 function sendMessage() {
     const messageInput = document.getElementById('chatMessageInput');
     const message = messageInput.value.trim();
@@ -1027,6 +1033,7 @@ function sendMessage() {
     }
 }
 
+//Load session-specific chat messages for users who are in a session 
 function loadChatMessages(sessionId) {
     const user = firebase.auth().currentUser;
     const messagesContainer = document.getElementById('chatMessages');
@@ -1083,7 +1090,10 @@ function loadChatMessages(sessionId) {
             console.error("Error checking session for chat: ", error);
         });
 
-} function addMessageToUI(messageData) {
+}
+
+// This function appends a new message to the chat UI and scrolls to the bottom
+function addMessageToUI(messageData) {
     const messagesContainer = document.getElementById('chatMessages');
     const currentUser = firebase.auth().currentUser;
 
@@ -1110,191 +1120,64 @@ function loadChatMessages(sessionId) {
     // Auto-scroll to bottom
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-} function formatTimestamp(timestamp) {
+}
+
+//Function to format timestamp for chat messages 
+function formatTimestamp(timestamp) {
     if (!timestamp) return '';
     return new Date(timestamp.seconds * 1000).toLocaleTimeString();
-}// Getting current session ID
-function getCurrentSessionId() {
-    const sessionId = localStorage.getItem('currentSessionId');
-    if (!sessionId) {
-        console.warn('No active session found. Creating a new session...');
-        createStudySession(); // Attempt to create a session if not exists
-        return null;
-    }
-    return sessionId;
-}// Modify the existing DOMContentLoaded listener
-firebase.auth().onAuthStateChanged((user) => {
+}
 
-    if (!window.location.pathname.includes('newsession.html')) {
-        return; // Exit if not on new session page
-    }
 
-    if (user) {
-        updateUserStatus(true);
 
-        // Remove any lingering session first
-        db.collection("users").doc(user.uid).update({
-            activeSessionId: firebase.firestore.FieldValue.delete()
-        })
-            .then(() => {
-                const sessionId = localStorage.getItem('currentSessionId');
-
-                if (sessionId) {
-                    // Try to join the existing session
-                    return db.collection("studySessions").doc(sessionId).get()
-                        .then((doc) => {
-                            if (doc.exists && doc.data().participants.includes(user.uid)) {
-                                return joinStudySession(sessionId);
-                            } else {
-                                // Invalid session, create a new one
-                                localStorage.removeItem('currentSessionId');
-                                return createStudySession();
-                            }
-                        });
-                } else {
-                    // No existing session, create a new one
-                    return createStudySession();
-                }
-            })
-            .then(() => {
-                // Always listen for notifications
-                listenForNotifications();
-            })
-            .catch((error) => {
-                console.error("Error during authentication state change:", error);
-                createStudySession();
-            });
-    } else {
-        window.location.href = 'login.html';
-    }
-
-});
 // Function to toggle chat list
 function toggleChatList() {
     closeOtherModals('chatList'); // Close other modals
     var chatList = document.getElementById('chatList');
     chatList.classList.toggle('active');
 }
-justJoined = false
-// Function to add users to the session
-function joinUserSession(targetUserId) {
-    const currentUser = firebase.auth().currentUser;
-    if (!currentUser) {
-        console.error("User not logged in");
-        return;
+
+document.addEventListener("DOMContentLoaded", function () {
+    const sendButton = document.getElementById('sendChatButton');
+    if (sendButton) {
+        sendButton.addEventListener('click', sendMessage);
     }
 
-    // Check if the target user has an active session
-    db.collection("users").doc(targetUserId).get()
-        .then((doc) => {
-            if (!doc.exists) {
-                throw new Error("Target user does not exist");
+    // Optionally, allow sending with the Enter key
+    const chatInput = document.getElementById('chatMessageInput');
+    if (chatInput) {
+        chatInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendMessage();
             }
-            const targetUserData = doc.data();
-            const targetSessionId = targetUserData.activeSessionId;
-
-            if (!targetSessionId) {
-                alert("This user is not currently in a session.");
-                return;
-            }
-
-            // Join the target user's session
-            return joinStudySession(targetSessionId);
-        })
-        .then(() => {
-            // Notify the target user that you joined their session
-            const notification = {
-                type: 'user_joined',
-                message: `${currentUser.name || 'Anonymous'} has joined your session`,
-                sessionId: localStorage.getItem('currentSessionId'),
-                timestamp: new Date().toISOString()
-            };
-            return db.collection("users").doc(targetUserId).update({
-                notifications: firebase.firestore.FieldValue.arrayUnion(notification)
-            });
-        })
-        .then(() => {
-            const alertBox = document.getElementById("inviteSuccessAlert");
-            if (alertBox) {
-                alertBox.textContent = "Successfully joined the session!";
-                alertBox.style.display = "block";
-                setTimeout(() => {
-                    alertBox.style.display = "none";
-                }, 3000);
-            }
-            toggleUserList(); // Close the user list
-            document.getElementById("stopwatchContainer").style.display = "block";
-            document.getElementById("showUsersBtnContainer").style.display = "none";
-        })
-        .catch((error) => {
-            console.error("Error joining user session:", error);
-            alert("Failed to join the session. Please try again.");
         });
-}
-
-function toggleUserList() {
-    closeOtherModals('userList');
-    const userList = document.getElementById('userList');
-    userList.classList.toggle('active');
-    if (userList.classList.contains('active')) {
-        loadOnlineUsers();
     }
-}
-// Fetch and display online users
-function loadOnlineUsers() {
-    const onlineUsersContainer = document.getElementById('onlineUsers');
-    if (!onlineUsersContainer) return;
 
-    onlineUsersContainer.innerHTML = '<p>Loading users...</p>'; // Loading indicator
+    // Make task list draggable and update order in Firestore
+    const tasksContainer = document.getElementById('tasks');
+    if (tasksContainer) {
+        new Sortable(tasksContainer, {
+            animation: 150,
+            handle: '.drag-handle',
+            onEnd: function (evt) {
+                const taskItems = [...tasksContainer.querySelectorAll('.task-item')];
+                const user = firebase.auth().currentUser;
 
-    // Fetch all users and filter for online status
-    db.collection("users").where("isOnline", "==", true).get()
-        .then((querySnapshot) => {
-            onlineUsersContainer.innerHTML = ''; // Clear loading message
-            if (querySnapshot.empty) {
-                onlineUsersContainer.innerHTML = '<p>No users online</p>';
-                return;
+                taskItems.forEach((item, index) => {
+                    const taskId = item.getAttribute('data-task-id');
+                    if (taskId && user) {
+                        db.collection("users").doc(user.uid).collection("tasks").doc(taskId).update({
+                            order: index
+                        }).catch(err => console.error("Error updating task order:", err));
+                    }
+                });
             }
-
-            querySnapshot.forEach((doc) => {
-                const userData = doc.data();
-                const userId = doc.id;
-                const currentUser = firebase.auth().currentUser;
-
-                // Don't show the current user in the list
-                if (userId === currentUser.uid) return;
-
-                const userHTML = `
-                <div class="user-item d-flex justify-content-between align-items-center mb-2" data-user-id="${userId}">
-                    <span>${userData.name || 'Anonymous'}</span>
-                    <button class="btn btn-sm btn-success add-user-btn" onclick="joinUserSession('${userId}')">
-                        Join Session
-                    </button>
-                </div>
-            `;
-                onlineUsersContainer.insertAdjacentHTML('beforeend', userHTML);
-            });
-        })
-        .catch((error) => {
-            console.error("Error loading online users:", error);
-            // onlineUsersContainer.innerHTML = '<p>Error loading users</p>';
         });
+    }
 
-}// Update user online status
-function updateUserStatus(isOnline) {
-    const user = firebase.auth().currentUser;
-    if (!user) return;
-
-    db.collection("users").doc(user.uid).set({
-        isOnline: isOnline,
-        // displayName: user.displayName || 'Anonymous', // Ensure displayName is stored
-        lastActive: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true })
-        .catch((error) => {
-            console.error("Error updating user status:", error);
-        });
-
-}
+});
+//*********************************************************************************** */
+//AI Assisted - Notification system
 // Listen for notifications
 function listenForNotifications() {
     const user = firebase.auth().currentUser;
@@ -1361,144 +1244,14 @@ function showNotification(notification) {
         notificationElement.remove();
     }, 5000);
 }
-// Function to dismiss notification and remove it from Firestore
-function dismissNotification(button, timestamp) {
-    const user = firebase.auth().currentUser;
-    if (!user) return;
-
-    const notificationDiv = button.parentElement;
-    if (notificationDiv.parentNode) {
-        notificationDiv.parentNode.removeChild(notificationDiv);
-    }
-
-    db.collection("users").doc(user.uid).update({
-        notifications: firebase.firestore.FieldValue.arrayRemove(
-            ...getNotification(user.uid, timestamp)
-        )
-    })
-        .catch((error) => {
-            console.error("Error removing notification:", error);
-        });
-
-}// Helper function to get specific notification to remove
-function getNotification(userId, timestamp) {
-    return new Promise((resolve) => {
-        db.collection("users").doc(userId).get()
-            .then((doc) => {
-                if (doc.exists) {
-                    const notifications = doc.data().notifications || [];
-                    const notificationToRemove = notifications.filter(
-                        n => n.timestamp === timestamp
-                    );
-                    resolve(notificationToRemove);
-                } else {
-                    resolve([]);
-                }
-            })
-            .catch((error) => {
-                console.error("Error fetching notifications:", error);
-                resolve([]);
-            });
-    });
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-    const sendButton = document.getElementById('sendChatButton');
-    if (sendButton) {
-        sendButton.addEventListener('click', sendMessage);
-    }
-
-    // Optionally, allow sending with the Enter key
-    const chatInput = document.getElementById('chatMessageInput');
-    if (chatInput) {
-        chatInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-    }
-
-    // Make task list draggable and update order in Firestore
-    const tasksContainer = document.getElementById('tasks');
-    if (tasksContainer) {
-        new Sortable(tasksContainer, {
-            animation: 150,
-            handle: '.drag-handle',
-            onEnd: function (evt) {
-                const taskItems = [...tasksContainer.querySelectorAll('.task-item')];
-                const user = firebase.auth().currentUser;
-
-                taskItems.forEach((item, index) => {
-                    const taskId = item.getAttribute('data-task-id');
-                    if (taskId && user) {
-                        db.collection("users").doc(user.uid).collection("tasks").doc(taskId).update({
-                            order: index
-                        }).catch(err => console.error("Error updating task order:", err));
-                    }
-                });
-            }
-        });
-    }
-
-});
-//*********************************************************************************** */
-//Notification system
-function createSessionNotification(invitedUserId, notificationType) {
-    const currentUser = firebase.auth().currentUser;
-    const currentSessionId = localStorage.getItem('currentSessionId');
-
-    if (!currentUser || !currentSessionId) {
-        console.error("No active session or user not logged in");
-        return Promise.reject("Invalid session");
-    }
-
-    // Prepare notification data
-    const notification = {
-        type: notificationType,
-        sessionId: currentSessionId,
-        senderId: currentUser.uid,
-        senderName: currentUser.name || 'Anonymous',
-        timestamp: new Date().toISOString()
-    };
-
-    // Customize message based on notification type
-    switch (notificationType) {
-        case 'session_invite':
-            notification.message = `You've been summoned for Co-op by ${notification.senderName}!`;
-            break;
-        case 'user_joined':
-            notification.message = `${notification.senderName} has joined the study session`;
-            break;
-        case 'user_left':
-            notification.message = `${notification.senderName} has left the study session`;
-            break;
-        default:
-            notification.message = 'New notification';
-    }
-
-    // Add notification to the invited user's profile
-    return db.collection("users").doc(invitedUserId).update({
-        notifications: firebase.firestore.FieldValue.arrayUnion(notification)
-    });
-}
 
 
-
-
-function handleSessionInvite(notification) {
-    // Optional: Add a confirmation dialog or automatic join
-    joinStudySession(notification.sessionId)
-        .then(() => {
-            // Remove the notification after processing
-            return db.collection("users").doc(firebase.auth().currentUser.uid).update({
-                notifications: firebase.firestore.FieldValue.arrayRemove(notification)
-            });
-        })
-        .catch((error) => {
-            console.error("Error processing session invite:", error);
-        });
-}
-
+// For a given study session:
+// 1. Get the list of participants from Firestore
+// 2. Exclude the user specified in `notification.except`
+// 3. For each remaining participant:
+//    - Add a notification object (with type, message, sessionId, and timestamp) to their `notifications` array
+// 4. Return a Promise that resolves once all updates complete
 function notifyParticipants(sessionId, notification) {
     return db.collection("studySessions").doc(sessionId).get()
         .then((doc) => {
@@ -1530,9 +1283,78 @@ function notifyParticipants(sessionId, notification) {
             console.error("Error notifying participants:", error);
         });
 }
+//***************************************User-list modal interactions******************************************/
 
-//Leveling Logic
 
+
+// Toggle the 'userList' modal; loads online users when activated
+function toggleUserList() {
+    closeOtherModals('userList');
+    const userList = document.getElementById('userList');
+    userList.classList.toggle('active');
+    if (userList.classList.contains('active')) {
+        loadOnlineUsers();
+    }
+}
+// Fetch and display online users
+function loadOnlineUsers() {
+    const onlineUsersContainer = document.getElementById('onlineUsers');
+    if (!onlineUsersContainer) return;
+
+    onlineUsersContainer.innerHTML = '<p>Loading users...</p>'; // Loading indicator
+
+    // Fetch all users and filter for online status
+    db.collection("users").where("isOnline", "==", true).get()
+        .then((querySnapshot) => {
+            onlineUsersContainer.innerHTML = ''; // Clear loading message
+            if (querySnapshot.empty) {
+                onlineUsersContainer.innerHTML = '<p>No users online</p>';
+                return;
+            }
+
+            querySnapshot.forEach((doc) => {
+                const userData = doc.data();
+                const userId = doc.id;
+                const currentUser = firebase.auth().currentUser;
+
+                // Don't show the current user in the list
+                if (userId === currentUser.uid) return;
+
+                const userHTML = `
+                <div class="user-item d-flex justify-content-between align-items-center mb-2" data-user-id="${userId}">
+                    <span>${userData.name || 'Anonymous'}</span>
+                    <button class="btn btn-sm btn-success add-user-btn" onclick="joinUserSession('${userId}')">
+                        Join Session
+                    </button>
+                </div>
+            `;
+                onlineUsersContainer.insertAdjacentHTML('beforeend', userHTML);
+            });
+        })
+        .catch((error) => {
+            console.error("Error loading online users:", error);
+            // onlineUsersContainer.innerHTML = '<p>Error loading users</p>';
+        });
+
+}
+// Update user online status
+function updateUserStatus(isOnline) {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    db.collection("users").doc(user.uid).set({
+        isOnline: isOnline,
+        // displayName: user.displayName || 'Anonymous', // Ensure displayName is stored
+        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true })
+        .catch((error) => {
+            console.error("Error updating user status:", error);
+        });
+
+}
+
+//****************************************************************************************************************** */
+//Fibonnaci-style leveling Logic
 function calculateLevel(points) {
     let level = 1;
     let fib1 = 0; // Points needed for level 1
@@ -1552,6 +1374,11 @@ function calculateLevel(points) {
     };
 }
 
+
+// Listens for clicks on editable task fields and swaps them with interactive inputs:
+//   - Flatpickr date input for deadlines
+//   - Star rating select dropdown for difficulty
+// Automatically updates Firestore and restores display on blur
 document.getElementById('tasks').addEventListener('click', function (event) {
     const target = event.target;
 
@@ -1641,6 +1468,7 @@ document.getElementById('tasks').addEventListener('click', function (event) {
         });
     }
 });
+
 // Function to close all modals except the one being opened
 function closeOtherModals(exceptId) {
     const modals = [
