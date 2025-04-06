@@ -83,22 +83,7 @@ if (leaderboardNav) {
         showLeaderBoard();
     });
 }
-
-// opening task list 
-function toggleTaskList() {
-    closeOtherModals('taskList'); // Close other modals
-    var taskList = document.getElementById('taskList');
-    taskList.classList.toggle('active');
-
-    // Close the offcanvas menu if open (keeping your existing logic)
-    const offcanvas = document.querySelector('.offcanvas.show');
-    if (offcanvas) {
-        const instance = bootstrap.Offcanvas.getInstance(offcanvas);
-        if (instance) {
-            instance.hide();
-        }
-    }
-}
+//******************************Task List Functionality***************************************************/
 
 // Star value checker
 function getSelectedStarValue() {
@@ -111,159 +96,7 @@ function getSelectedStarValue() {
 
 }
 
-// "Add Task" modal manager - 
-// This manages form input visibility, and integrates added tasks with database.
-document.addEventListener("DOMContentLoaded", function () {
-    const modal = document.getElementById("exampleModal");
-    const addTaskBtn = document.querySelector(".add-task-button button");
-    const closeModal = document.querySelector(".close");
 
-    if (addTaskBtn) { // Ensure the element exists before adding listener
-        addTaskBtn.addEventListener("click", function () {
-            modal.style.display = "block";
-        });
-    }
-
-    if (closeModal) { // Ensure the element exists before adding listener
-        closeModal.addEventListener("click", function () {
-            modal.style.display = "none";
-        });
-    }
-
-
-    // Window click listener for modal only
-    window.addEventListener("click", function (event) {
-        if (event.target === modal) {
-            modal.style.display = "none";
-            document.getElementById('taskForm').reset();
-        }
-    });
-
-
-
-    // Initialize Flatpickr for date-only pickers
-    const deadlinePicker = flatpickr("#taskDeadlineInput", {
-        enableTime: false,
-        dateFormat: "F j, Y",
-        minDate: "today",
-        defaultDate: null
-    });
-
-    const reminderPicker = flatpickr("#taskReminderInput", {
-        enableTime: false,
-        dateFormat: "F j, Y",
-        minDate: "today",
-        defaultDate: null
-    });
-
-    // Toggle visibility for deadline date and time inputs
-    const taskDeadlineCheckbox = document.getElementById('taskDeadlineCheckbox');
-    const taskDeadlineInput = document.getElementById('taskDeadlineInput');
-    const taskDeadlineTimeInput = document.getElementById('taskDeadlineTimeInput');
-    taskDeadlineCheckbox.addEventListener('change', function () {
-        const displayStyle = this.checked ? 'block' : 'none';
-        taskDeadlineInput.style.display = displayStyle;
-        taskDeadlineTimeInput.style.display = displayStyle;
-        if (!this.checked) {
-            deadlinePicker.clear();
-            taskDeadlineTimeInput.value = ''; // Clear time input
-        }
-    });
-
-    // Toggle visibility for reminder date and time inputs
-    const taskReminderCheckbox = document.getElementById('taskReminderCheckbox');
-    const taskReminderInput = document.getElementById('taskReminderInput');
-    const taskReminderTimeInput = document.getElementById('taskReminderTimeInput');
-    taskReminderCheckbox.addEventListener('change', function () {
-        const displayStyle = this.checked ? 'block' : 'none';
-        taskReminderInput.style.display = displayStyle;
-        taskReminderTimeInput.style.display = displayStyle;
-        if (!this.checked) {
-            reminderPicker.clear();
-            taskReminderTimeInput.value = ''; // Clear time input
-        }
-    });
-    // Add task to task list when "add task" button is clicked
-    document.getElementById('addTaskButton').addEventListener('click', function () {
-        const taskName = document.getElementById('recipient-name').value;
-        const taskDescription = document.getElementById('message-text').value;
-        const taskDeadline = document.getElementById('taskDeadlineInput').value;
-        const taskReminder = document.getElementById('taskReminderInput').value;
-        const taskDeadlineTime = document.getElementById('taskDeadlineTimeInput').value;
-        const taskReminderTime = document.getElementById('taskReminderTimeInput').value;
-        const taskValue = getSelectedStarValue();
-
-        if (taskName) {
-            // Create task object
-            const task = {
-                name: taskName,
-                description: taskDescription,
-                deadline: taskDeadline,
-                deadlineTime: taskDeadlineTime,
-                reminder: taskReminder,
-                reminderTime: taskReminderTime,
-                completed: false,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                value: taskValue,
-                order: Date.now() // Use timestamp for initial ordering
-            };
-
-            // Get current user
-            const user = firebase.auth().currentUser;
-            if (user) {
-                // Add task to Firestore
-                db.collection("users").doc(user.uid).collection("tasks").add(task)
-                    .then((docRef) => {
-                        return docRef.get().then(doc => {
-                            // If createdAt hasn't populated yet, wait and retry once
-                            if (!doc.exists || !doc.data().createdAt) {
-                                return new Promise(resolve => setTimeout(resolve, 500)).then(() => docRef.get());
-                            }
-                            return doc;
-                        });
-                    })
-                    .then((doc) => {
-                        if (doc.exists) {
-                            const savedTask = doc.data();
-                            addTaskToUI(doc.id, savedTask, false);
-                        }
-
-                        document.getElementById('taskForm').reset();
-                        document.getElementById('taskDeadlineInput').value = '';
-                        document.getElementById('taskDeadlineInput').style.display = 'none';
-                        document.getElementById('taskReminderInput').value = '';
-                        document.getElementById('taskReminderInput').style.display = 'none';
-
-
-                        // Close the modal
-                        var modal = new bootstrap.Modal(document.getElementById('exampleModal'));
-                        modal.hide();
-                    })
-                    .catch((error) => {
-                        console.error("Error adding task: ", error);
-                    });
-            } else {
-                console.log("No user is signed in.");
-                // In case the user isn't signed in
-            }
-        }
-    });
-    // Reset the add task form whenever it is cancelled
-    var exampleModalEl = document.getElementById('exampleModal');
-    exampleModalEl.addEventListener('hidden.bs.modal', function () {
-        document.getElementById('taskForm').reset();
-        document.getElementById('taskDeadlineInput').value = '';
-        document.getElementById('taskDeadlineInput').style.display = 'none';
-        document.getElementById('taskDeadlineTimeInput').value = '';
-        document.getElementById('taskReminderTimeInput').value = '';
-        document.getElementById('taskDeadlineTimeInput').style.display = 'none';
-        document.getElementById('taskReminderTimeInput').style.display = 'none';
-        document.getElementById('taskReminderInput').value = '';
-        document.getElementById('taskReminderInput').style.display = 'none';
-        document.getElementById('taskDeadlineCheckbox').checked = false;
-        document.getElementById('taskReminderCheckbox').checked = false;
-    });
-});
 
 // Firebase auth state listener
 firebase.auth().onAuthStateChanged(function (user) {
@@ -541,6 +374,99 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 
+// This function listens for clicks on editable task fields and swaps them with interactive inputs:
+//   - Flatpickr date input for deadlines
+//   - Star rating select dropdown for difficulty
+// Automatically updates Firestore and restores display on blur
+document.getElementById('tasks').addEventListener('click', function (event) {
+    const target = event.target;
+
+    if (target.classList.contains('editable-text')) {
+        const type = target.classList.contains('deadline-text') ? 'deadline' : 'value';
+        const isCompleted = target.dataset.isCompleted === "true";
+        const taskId = target.dataset.taskId;
+        const currentValue = target.dataset.value;
+
+        let input;
+
+        if (type === 'deadline') {
+            input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'form-control form-control-sm flatpickr-inline-deadline';
+            input.value = currentValue;
+
+            target.replaceWith(input);
+            document.body.offsetHeight; // force reflow to ensure input is in the DOM
+
+            flatpickr(input, {
+                enableTime: false,
+                dateFormat: "F j, Y",
+                defaultDate: currentValue || null,
+                minDate: "today",
+                onClose: function (selectedDates, dateStr) {
+                    setTimeout(() => {
+                        input.value = dateStr;
+                        input.dispatchEvent(new Event('blur'));
+                    }, 0);
+                }
+            });
+
+            input.focus();
+
+
+        } else {
+            input = document.createElement('select');
+            input.className = 'form-select form-select-sm';
+            for (let i = 1; i <= 5; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = '⭐'.repeat(i);
+                if (parseInt(currentValue) === i) option.selected = true;
+                input.appendChild(option);
+            }
+            target.replaceWith(input);
+
+        }
+
+        input.style.maxWidth = '200px';
+        input.dataset.taskId = taskId;
+        input.dataset.isCompleted = isCompleted;
+        input.dataset.type = type;
+
+
+        input.addEventListener('blur', () => {
+            const newValue = type === 'value' ? parseInt(input.value) : input.value;
+            const collection = isCompleted ? 'taskHistory' : 'tasks';
+
+            db.collection("users").doc(firebase.auth().currentUser.uid).collection(collection).doc(taskId).update({
+                [type]: newValue
+            }).then(() => {
+                const span = document.createElement('span');
+                span.className = `editable-text ${type === 'value' ? 'difficulty-text' : 'deadline-text'}`;
+                span.dataset.taskId = taskId;
+                span.dataset.value = newValue;
+                span.dataset.isCompleted = isCompleted;
+                if (type === 'value') {
+                    span.textContent = '⭐'.repeat(newValue);
+                } else if (type === 'deadline') {
+                    span.textContent = input.value || "None";
+                } else {
+                    span.textContent = newValue || "None";
+                }
+
+                input.replaceWith(span);
+                const feedback = document.getElementById('taskFeedback');
+                if (feedback) {
+                    feedback.classList.remove('d-none');
+                    setTimeout(() => feedback.classList.add('d-none'), 1500);
+                }
+
+            }).catch(error => {
+                console.error(`Error updating ${type}:`, error);
+            });
+        });
+    }
+});
 
 //**************************Session-related functions*********************************************/
 
@@ -1128,54 +1054,6 @@ function formatTimestamp(timestamp) {
     return new Date(timestamp.seconds * 1000).toLocaleTimeString();
 }
 
-
-
-// Function to toggle chat list
-function toggleChatList() {
-    closeOtherModals('chatList'); // Close other modals
-    var chatList = document.getElementById('chatList');
-    chatList.classList.toggle('active');
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-    const sendButton = document.getElementById('sendChatButton');
-    if (sendButton) {
-        sendButton.addEventListener('click', sendMessage);
-    }
-
-    // Optionally, allow sending with the Enter key
-    const chatInput = document.getElementById('chatMessageInput');
-    if (chatInput) {
-        chatInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-    }
-
-    // Make task list draggable and update order in Firestore
-    const tasksContainer = document.getElementById('tasks');
-    if (tasksContainer) {
-        new Sortable(tasksContainer, {
-            animation: 150,
-            handle: '.drag-handle',
-            onEnd: function (evt) {
-                const taskItems = [...tasksContainer.querySelectorAll('.task-item')];
-                const user = firebase.auth().currentUser;
-
-                taskItems.forEach((item, index) => {
-                    const taskId = item.getAttribute('data-task-id');
-                    if (taskId && user) {
-                        db.collection("users").doc(user.uid).collection("tasks").doc(taskId).update({
-                            order: index
-                        }).catch(err => console.error("Error updating task order:", err));
-                    }
-                });
-            }
-        });
-    }
-
-});
 //*********************************************************************************** */
 //AI Assisted - Notification system
 // Listen for notifications
@@ -1284,7 +1162,20 @@ function notifyParticipants(sessionId, notification) {
         });
 }
 //***************************************User-list modal interactions******************************************/
+// Function to close all modals except the one being opened
+function closeOtherModals(exceptId) {
+    const modals = [
+        { id: 'taskList', element: document.getElementById('taskList') },
+        { id: 'chatList', element: document.getElementById('chatList') },
+        { id: 'userList', element: document.getElementById('userList') }
+    ];
 
+    modals.forEach(modal => {
+        if (modal.id !== exceptId && modal.element && modal.element.classList.contains('active')) {
+            modal.element.classList.remove('active');
+        }
+    });
+}
 
 
 // Toggle the 'userList' modal; loads online users when activated
@@ -1352,7 +1243,223 @@ function updateUserStatus(isOnline) {
         });
 
 }
+//****************************Task-list modal interactions************************************/
+// Opening the task list 
+function toggleTaskList() {
+    closeOtherModals('taskList'); // Close other modals
+    var taskList = document.getElementById('taskList');
+    taskList.classList.toggle('active');
 
+    // Close the offcanvas menu if open (keeping your existing logic)
+    const offcanvas = document.querySelector('.offcanvas.show');
+    if (offcanvas) {
+        const instance = bootstrap.Offcanvas.getInstance(offcanvas);
+        if (instance) {
+            instance.hide();
+        }
+    }
+}
+
+// "Add Task" modal manager - 
+// This manages form input visibility, and integrates added tasks with database.
+document.addEventListener("DOMContentLoaded", function () {
+    const modal = document.getElementById("exampleModal");
+    const addTaskBtn = document.querySelector(".add-task-button button");
+    const closeModal = document.querySelector(".close");
+
+    if (addTaskBtn) { // Ensure the element exists before adding listener
+        addTaskBtn.addEventListener("click", function () {
+            modal.style.display = "block";
+        });
+    }
+
+    if (closeModal) { // Ensure the element exists before adding listener
+        closeModal.addEventListener("click", function () {
+            modal.style.display = "none";
+        });
+    }
+
+
+    // Window click listener for modal only
+    window.addEventListener("click", function (event) {
+        if (event.target === modal) {
+            modal.style.display = "none";
+            document.getElementById('taskForm').reset();
+        }
+    });
+
+
+
+    // Initialize Flatpickr for date-only pickers
+    const deadlinePicker = flatpickr("#taskDeadlineInput", {
+        enableTime: false,
+        dateFormat: "F j, Y",
+        minDate: "today",
+        defaultDate: null
+    });
+
+    const reminderPicker = flatpickr("#taskReminderInput", {
+        enableTime: false,
+        dateFormat: "F j, Y",
+        minDate: "today",
+        defaultDate: null
+    });
+
+    // Toggle visibility for deadline date and time inputs
+    const taskDeadlineCheckbox = document.getElementById('taskDeadlineCheckbox');
+    const taskDeadlineInput = document.getElementById('taskDeadlineInput');
+    const taskDeadlineTimeInput = document.getElementById('taskDeadlineTimeInput');
+    taskDeadlineCheckbox.addEventListener('change', function () {
+        const displayStyle = this.checked ? 'block' : 'none';
+        taskDeadlineInput.style.display = displayStyle;
+        taskDeadlineTimeInput.style.display = displayStyle;
+        if (!this.checked) {
+            deadlinePicker.clear();
+            taskDeadlineTimeInput.value = ''; // Clear time input
+        }
+    });
+
+    // Toggle visibility for reminder date and time inputs
+    const taskReminderCheckbox = document.getElementById('taskReminderCheckbox');
+    const taskReminderInput = document.getElementById('taskReminderInput');
+    const taskReminderTimeInput = document.getElementById('taskReminderTimeInput');
+    taskReminderCheckbox.addEventListener('change', function () {
+        const displayStyle = this.checked ? 'block' : 'none';
+        taskReminderInput.style.display = displayStyle;
+        taskReminderTimeInput.style.display = displayStyle;
+        if (!this.checked) {
+            reminderPicker.clear();
+            taskReminderTimeInput.value = ''; // Clear time input
+        }
+    });
+    // Add task to task list when "add task" button is clicked
+    document.getElementById('addTaskButton').addEventListener('click', function () {
+        const taskName = document.getElementById('recipient-name').value;
+        const taskDescription = document.getElementById('message-text').value;
+        const taskDeadline = document.getElementById('taskDeadlineInput').value;
+        const taskReminder = document.getElementById('taskReminderInput').value;
+        const taskDeadlineTime = document.getElementById('taskDeadlineTimeInput').value;
+        const taskReminderTime = document.getElementById('taskReminderTimeInput').value;
+        const taskValue = getSelectedStarValue();
+
+        if (taskName) {
+            // Create task object
+            const task = {
+                name: taskName,
+                description: taskDescription,
+                deadline: taskDeadline,
+                deadlineTime: taskDeadlineTime,
+                reminder: taskReminder,
+                reminderTime: taskReminderTime,
+                completed: false,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                value: taskValue,
+                order: Date.now() // Use timestamp for initial ordering
+            };
+
+            // Get current user
+            const user = firebase.auth().currentUser;
+            if (user) {
+                // Add task to Firestore
+                db.collection("users").doc(user.uid).collection("tasks").add(task)
+                    .then((docRef) => {
+                        return docRef.get().then(doc => {
+                            // If createdAt hasn't populated yet, wait and retry once
+                            if (!doc.exists || !doc.data().createdAt) {
+                                return new Promise(resolve => setTimeout(resolve, 500)).then(() => docRef.get());
+                            }
+                            return doc;
+                        });
+                    })
+                    .then((doc) => {
+                        if (doc.exists) {
+                            const savedTask = doc.data();
+                            addTaskToUI(doc.id, savedTask, false);
+                        }
+
+                        document.getElementById('taskForm').reset();
+                        document.getElementById('taskDeadlineInput').value = '';
+                        document.getElementById('taskDeadlineInput').style.display = 'none';
+                        document.getElementById('taskReminderInput').value = '';
+                        document.getElementById('taskReminderInput').style.display = 'none';
+
+
+                        // Close the modal
+                        var modal = new bootstrap.Modal(document.getElementById('exampleModal'));
+                        modal.hide();
+                    })
+                    .catch((error) => {
+                        console.error("Error adding task: ", error);
+                    });
+            } else {
+                console.log("No user is signed in.");
+                // In case the user isn't signed in
+            }
+        }
+    });
+    // Reset the add task form whenever it is cancelled
+    var exampleModalEl = document.getElementById('exampleModal');
+    exampleModalEl.addEventListener('hidden.bs.modal', function () {
+        document.getElementById('taskForm').reset();
+        document.getElementById('taskDeadlineInput').value = '';
+        document.getElementById('taskDeadlineInput').style.display = 'none';
+        document.getElementById('taskDeadlineTimeInput').value = '';
+        document.getElementById('taskReminderTimeInput').value = '';
+        document.getElementById('taskDeadlineTimeInput').style.display = 'none';
+        document.getElementById('taskReminderTimeInput').style.display = 'none';
+        document.getElementById('taskReminderInput').value = '';
+        document.getElementById('taskReminderInput').style.display = 'none';
+        document.getElementById('taskDeadlineCheckbox').checked = false;
+        document.getElementById('taskReminderCheckbox').checked = false;
+    });
+});
+//****************************Chat-list modal interactions************************************/
+// Function to toggle chat list
+function toggleChatList() {
+    closeOtherModals('chatList'); // Close other modals
+    var chatList = document.getElementById('chatList');
+    chatList.classList.toggle('active');
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const sendButton = document.getElementById('sendChatButton');
+    if (sendButton) {
+        sendButton.addEventListener('click', sendMessage);
+    }
+
+    // Allow sending with the Enter key
+    const chatInput = document.getElementById('chatMessageInput');
+    if (chatInput) {
+        chatInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    }
+
+    // Make task list draggable and update order in Firestore
+    const tasksContainer = document.getElementById('tasks');
+    if (tasksContainer) {
+        new Sortable(tasksContainer, {
+            animation: 150,
+            handle: '.drag-handle',
+            onEnd: function (evt) {
+                const taskItems = [...tasksContainer.querySelectorAll('.task-item')];
+                const user = firebase.auth().currentUser;
+
+                taskItems.forEach((item, index) => {
+                    const taskId = item.getAttribute('data-task-id');
+                    if (taskId && user) {
+                        db.collection("users").doc(user.uid).collection("tasks").doc(taskId).update({
+                            order: index
+                        }).catch(err => console.error("Error updating task order:", err));
+                    }
+                });
+            }
+        });
+    }
+
+});
 //****************************************************************************************************************** */
 //Fibonnaci-style leveling Logic
 function calculateLevel(points) {
@@ -1372,114 +1479,4 @@ function calculateLevel(points) {
         nextLevelPoints: fib2,
         pointsNeeded: fib2 - points
     };
-}
-
-
-// Listens for clicks on editable task fields and swaps them with interactive inputs:
-//   - Flatpickr date input for deadlines
-//   - Star rating select dropdown for difficulty
-// Automatically updates Firestore and restores display on blur
-document.getElementById('tasks').addEventListener('click', function (event) {
-    const target = event.target;
-
-    if (target.classList.contains('editable-text')) {
-        const type = target.classList.contains('deadline-text') ? 'deadline' : 'value';
-        const isCompleted = target.dataset.isCompleted === "true";
-        const taskId = target.dataset.taskId;
-        const currentValue = target.dataset.value;
-
-        let input;
-
-        if (type === 'deadline') {
-            input = document.createElement('input');
-            input.type = 'text';
-            input.className = 'form-control form-control-sm flatpickr-inline-deadline';
-            input.value = currentValue;
-
-            target.replaceWith(input);
-            document.body.offsetHeight; // force reflow to ensure input is in the DOM
-
-            flatpickr(input, {
-                enableTime: false,
-                dateFormat: "F j, Y",
-                defaultDate: currentValue || null,
-                minDate: "today",
-                onClose: function (selectedDates, dateStr) {
-                    setTimeout(() => {
-                        input.value = dateStr;
-                        input.dispatchEvent(new Event('blur'));
-                    }, 0);
-                }
-            });
-
-            input.focus();
-
-
-        } else {
-            input = document.createElement('select');
-            input.className = 'form-select form-select-sm';
-            for (let i = 1; i <= 5; i++) {
-                const option = document.createElement('option');
-                option.value = i;
-                option.textContent = '⭐'.repeat(i);
-                if (parseInt(currentValue) === i) option.selected = true;
-                input.appendChild(option);
-            }
-            target.replaceWith(input);
-
-        }
-
-        input.style.maxWidth = '200px';
-        input.dataset.taskId = taskId;
-        input.dataset.isCompleted = isCompleted;
-        input.dataset.type = type;
-
-
-        input.addEventListener('blur', () => {
-            const newValue = type === 'value' ? parseInt(input.value) : input.value;
-            const collection = isCompleted ? 'taskHistory' : 'tasks';
-
-            db.collection("users").doc(firebase.auth().currentUser.uid).collection(collection).doc(taskId).update({
-                [type]: newValue
-            }).then(() => {
-                const span = document.createElement('span');
-                span.className = `editable-text ${type === 'value' ? 'difficulty-text' : 'deadline-text'}`;
-                span.dataset.taskId = taskId;
-                span.dataset.value = newValue;
-                span.dataset.isCompleted = isCompleted;
-                if (type === 'value') {
-                    span.textContent = '⭐'.repeat(newValue);
-                } else if (type === 'deadline') {
-                    span.textContent = input.value || "None";
-                } else {
-                    span.textContent = newValue || "None";
-                }
-
-                input.replaceWith(span);
-                const feedback = document.getElementById('taskFeedback');
-                if (feedback) {
-                    feedback.classList.remove('d-none');
-                    setTimeout(() => feedback.classList.add('d-none'), 1500);
-                }
-
-            }).catch(error => {
-                console.error(`Error updating ${type}:`, error);
-            });
-        });
-    }
-});
-
-// Function to close all modals except the one being opened
-function closeOtherModals(exceptId) {
-    const modals = [
-        { id: 'taskList', element: document.getElementById('taskList') },
-        { id: 'chatList', element: document.getElementById('chatList') },
-        { id: 'userList', element: document.getElementById('userList') }
-    ];
-
-    modals.forEach(modal => {
-        if (modal.id !== exceptId && modal.element && modal.element.classList.contains('active')) {
-            modal.element.classList.remove('active');
-        }
-    });
 }
