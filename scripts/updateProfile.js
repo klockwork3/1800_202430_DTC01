@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 });
 
+// submit button, will update the userprofile
 function setupProfileUpdate(user) {
       const form = document.getElementById('profileForm');
 
@@ -74,5 +75,5 @@ function updateUserProfile(user) {
             });
 }
 
-// Make selectAvatar function available globally
+// Mmske selectAvatar function available globally
 window.selectAvatar = selectAvatar;

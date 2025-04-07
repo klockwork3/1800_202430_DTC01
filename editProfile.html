@@ -63,7 +63,7 @@
 
                   <form id="profileForm">
 
-
+                        <!-- pre made profile photos to choose from -->
                         <div class="mb-3">
                               <label class="form-label">Profile Picture</label>
                               <div class="avatar-options-container">
@@ -83,13 +83,13 @@
                               <input type="hidden" id="selectedAvatar" name="avatar">
                         </div>
 
-
+                        <!-- name change -->
                         <div class="mb-3">
                               <label for="displayNameChange" class="form-label">Display Name</label>
                               <input class="form-control" id="displayNameChange" aria-describedby="emailHelp">
                               <div id="displayNameHelp" class="form-text">you can call yourself whatever you want!</div>
                         </div>
-
+                        <!-- pronouns -->
                         <div class="mb-3">
                               <label for="pronounSelect" class="form-label">Pronouns</label>
                               <select id="pronounSelect" class="form-select">
@@ -99,12 +99,14 @@
                                     <option>n/a</option>
                               </select>
                         </div>
+                        <!-- text box to type bio -->
 
                         <div class="form-group">
                               <label for="bioArea">Bio</label>
                               <textarea class="form-control" id="bioArea" rows="3"></textarea>
                         </div>
                         <br>
+                        <!-- on submit, id = submit function -->
                         <button type="submit" id="submit" class="btn btn-primary">Submit</button>
                         <button type="button" class="btn btn-outline-secondary ms-2"
                               onclick="confirmCancel()">Cancel</button>

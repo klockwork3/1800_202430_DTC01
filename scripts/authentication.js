@@ -43,15 +43,16 @@ document.addEventListener('DOMContentLoaded', () => {
           db.collection("users").doc(user.uid).update({
             isOnline: true
           })
-          .then(function() {
-            console.log("User marked as online");
-            window.location.assign("main.html");
-          })
-          .catch(function(error) {
-            console.error("Error updating online status: ", error);
-          });
-          return false; 
-        }},
+            .then(function () {
+              console.log("User marked as online");
+              window.location.assign("main.html");
+            })
+            .catch(function (error) {
+              console.error("Error updating online status: ", error);
+            });
+          return false;
+        }
+      },
       uiShown: function () {
         // The widget is rendered.
         // Hide the loader.
