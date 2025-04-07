@@ -1,0 +1,39 @@
+.tektur-bold-logo {
+      font-family: "Tektur", sans-serif;
+      font-weight: 600;
+      color: black;
+}
+
+.tektur-bold-regular {
+      font-family: "Tektur", sans-serif;
+      font-weight: 300;
+      color: black;
+}
+
+.navbar {
+      background-color: #C9B194;
+
+}
+
+.profile-icon {
+      border: 2px solid black;
+      border-radius: 50%;
+      height: 45px;
+      width: 45px;
+}
+
+.btn-group .btn:hover {
+      background-color: #689c3b !important;
+      /* Darker gray on hover */
+      transition: background-color 0.3s ease;
+      /* Smooth transition */
+}
+
+/* Center the button group */
+.center-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      align-items: flex-end;
+}
